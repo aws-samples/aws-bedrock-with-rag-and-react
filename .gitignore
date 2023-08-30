@@ -1,0 +1,5 @@
+node_modules
+backend/flask/output/*
+backend/flask/__pycache__
+backend/flask/__pycache__/app.cypthon-311.pyc
+.DS_Store
