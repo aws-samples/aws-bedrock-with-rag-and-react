@@ -4,7 +4,7 @@ Use this solution to quickly and inexpensively begin prototyping and vetting bus
 
 This solution contains a backend Flask application which uses LangChain to provide PDF data as embeddings to your choice of text-gen foundational model via Amazon Web Services (AWS) new, managed LLM-provider service, Amazon Bedrock and your choice of vector database with FAISS or a Kendra Index.
 
-The only cost-generating AWS resources this solution uses are Amazon Cognito and Amazon Bedrock.
+The only cost-generating AWS service this solution uses is Amazon Bedrock.
 
 
 ## What You'll Build
