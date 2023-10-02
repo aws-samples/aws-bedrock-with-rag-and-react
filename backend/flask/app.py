@@ -52,7 +52,7 @@ chathistory = []
 
 aws_cli_profile_name = 'general'
 session = boto3.Session(profile_name=aws_cli_profile_name)
-bedrock_client = session.client(service_name='bedrock', region_name=aws_region, endpoint_url='https://bedrock-runtime.us-west-2.amazonaws.com')
+bedrock_client = session.client(service_name='bedrock', region_name=aws_region, endpoint_url='https://bedrock-runtime.'+aws_region+'.amazonaws.com')
 pdf_directory = './output'
 
 app.config['UPLOAD_FOLDER'] = 'output'
@@ -105,35 +105,7 @@ class VectorDatabase:
         print(f"vectorstore_faiss_aws: number of elements in the index={self.vectorstore_faiss_aws.index.ntotal}::")
 
 
-    # def initialize_vector_db(self, pdf_directory):
-    #         self.br_embeddings = BedrockEmbeddings(
-    #             # credentials_profile_name=aws_cli_profile_name, #sets the profile name to use for AWS credentials (if not the default)
-    #             # region_name=aws_region, #sets the region name (if not the default)
-    #             client=bedrock_client, 
-    #             endpoint_url="https://bedrock.us-west-2.amazonaws.com", #sets the endpoint URL (if necessary)
-    #             # model_id='amazon.titan-embed-g1-text-02'
-    #             model_id='amazon.titan-embed-text-v1'
-    #         )
-            
-    #         loader = PyPDFDirectoryLoader(pdf_directory)
-
-    #         text_splitter = RecursiveCharacterTextSplitter(
-    #             chunk_size = 1000,
-    #             chunk_overlap  = 100,
-    #             separators = ["\n\n", "\n", " ", "",',']
-    #         )
-
-    #         self.vector_initialized = True
-
-    #         index_creator = VectorstoreIndexCreator( #create a vector store factory
-    #             vectorstore_cls=FAISS, #use an in-memory vector store for demo purposes
-    #             embedding=self.br_embeddings, #use Titan embeddings
-    #             text_splitter=text_splitter, #use the recursive text splitter
-    #         )
-
-    #         self.vectorstore_faiss_aws = index_creator.from_loaders([loader])
-    #         print(f"vectorstore_faiss_aws: number of elements in the index={self.vectorstore_faiss_aws.index.ntotal}::")
-
+    
 
     def instantiate_kendra(self, profile_name, index_id):
         try:
@@ -541,10 +513,7 @@ def predict_ai21():
     cl_llm = Bedrock(model_id="ai21.j2-grande-instruct", client=bedrock_client, model_kwargs={"maxTokens": 200, "temperature": 0.5, "topP": 0.5, "stopSequences": [], "countPenalty": {"scale": 0}, "presencePenalty": {"scale": 0}, "frequencyPenalty": {"scale": 0}}) # change model_id here
     
     body = request.json
-    print(type(body))
     question = body['prompt']
-    print(question)
-    # memory_chain.chat_memory.add_user_message(question)
 
     qa = ConversationalRetrievalChain.from_llm(
         llm=cl_llm,
