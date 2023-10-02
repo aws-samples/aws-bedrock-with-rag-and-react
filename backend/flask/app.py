@@ -17,6 +17,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.schema import BaseMessage
 from langchain.llms.bedrock import Bedrock
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.indexes import VectorstoreIndexCreator
 from langchain.document_loaders.pdf import (
     PyPDFDirectoryLoader
 )
@@ -45,13 +46,13 @@ from argparse import ArgumentTypeError
 app = Flask(__name__)
 CORS(app)
 
-aws_region = 'us-east-1'
+aws_region = 'us-west-2'
 aws_service = 'bedrock'
 chathistory = []
 
-aws_cli_profile_name = 'bedrock'
+aws_cli_profile_name = 'general'
 session = boto3.Session(profile_name=aws_cli_profile_name)
-bedrock_client = session.client(service_name='bedrock', region_name='us-east-1', endpoint_url='https://bedrock.us-east-1.amazonaws.com')
+bedrock_client = session.client(service_name='bedrock', region_name=aws_region, endpoint_url='https://bedrock-runtime.us-west-2.amazonaws.com')
 pdf_directory = './output'
 
 app.config['UPLOAD_FOLDER'] = 'output'
@@ -78,7 +79,7 @@ class VectorDatabase:
 
     def initialize_vector_db(self, pdf_directory):
         # # Initialize Bedrock embeddings
-        self.br_embeddings = BedrockEmbeddings(client=bedrock_client)
+        self.br_embeddings = BedrockEmbeddings(client=bedrock_client, model_id='amazon.titan-embed-text-v1')
         print(f"br_embeddings: {self.br_embeddings}")
 
         
@@ -91,7 +92,7 @@ class VectorDatabase:
         
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size = 1000,
-            chunk_overlap  = 50,
+            chunk_overlap  = 100,
             separators = ["\n\n", "\n", " ", "",',']
         )
         docs = text_splitter.split_documents(documents)
@@ -104,10 +105,40 @@ class VectorDatabase:
         print(f"vectorstore_faiss_aws: number of elements in the index={self.vectorstore_faiss_aws.index.ntotal}::")
 
 
+    # def initialize_vector_db(self, pdf_directory):
+    #         self.br_embeddings = BedrockEmbeddings(
+    #             # credentials_profile_name=aws_cli_profile_name, #sets the profile name to use for AWS credentials (if not the default)
+    #             # region_name=aws_region, #sets the region name (if not the default)
+    #             client=bedrock_client, 
+    #             endpoint_url="https://bedrock.us-west-2.amazonaws.com", #sets the endpoint URL (if necessary)
+    #             # model_id='amazon.titan-embed-g1-text-02'
+    #             model_id='amazon.titan-embed-text-v1'
+    #         )
+            
+    #         loader = PyPDFDirectoryLoader(pdf_directory)
+
+    #         text_splitter = RecursiveCharacterTextSplitter(
+    #             chunk_size = 1000,
+    #             chunk_overlap  = 100,
+    #             separators = ["\n\n", "\n", " ", "",',']
+    #         )
+
+    #         self.vector_initialized = True
+
+    #         index_creator = VectorstoreIndexCreator( #create a vector store factory
+    #             vectorstore_cls=FAISS, #use an in-memory vector store for demo purposes
+    #             embedding=self.br_embeddings, #use Titan embeddings
+    #             text_splitter=text_splitter, #use the recursive text splitter
+    #         )
+
+    #         self.vectorstore_faiss_aws = index_creator.from_loaders([loader])
+    #         print(f"vectorstore_faiss_aws: number of elements in the index={self.vectorstore_faiss_aws.index.ntotal}::")
+
+
     def instantiate_kendra(self, profile_name, index_id):
         try:
             session = boto3.Session(profile_name=profile_name)
-            self.kendra_client = session.client(service_name='kendra', region_name='us-east-1')
+            self.kendra_client = session.client(service_name='kendra', region_name=aws_region)
             self.kendra_retriever = AmazonKendraRetriever(client=self.kendra_client, index_id=index_id)
             return True
         except Exception as e:
@@ -219,14 +250,11 @@ def send_devtools(driver, cmd, params={}):
         return None
 
 def save_as_pdf(driver, path, options={}):
-    # Docs: https://chromedevtools.github.io/devtools-protocol/tot/Page/#method-printToPDF
     result = send_devtools(driver, "Page.printToPDF", options)
     if (result is not None) and '404' not in path:
         with open(path, 'wb') as file:
-            # Decode the PDF data
             pdf_data = base64.b64decode(result['data'])
 
-            # Remove unwanted content from the PDF data using JavaScript
             pdf_data = remove_unwanted_content(driver, pdf_data)
 
             file.write(pdf_data)
@@ -236,10 +264,8 @@ def save_as_pdf(driver, path, options={}):
 
 def delete_files_in_directory(directory_path):
     try:
-        # Get a list of all files in the directory
         files = os.listdir(directory_path)
 
-        # Loop through the files and delete each one
         for file_name in files:
             file_path = os.path.join(directory_path, file_name)
             if os.path.isfile(file_path):
@@ -256,7 +282,6 @@ def get_title_from_page(page_content):
 def collect_links_from_page(url, page_content, prefix):
     soup = BeautifulSoup(page_content, 'html.parser')
     links_set = set()
-    # Find all the anchor tags that have an href attribute
     for a in soup.find_all('a', href=True):
         if 'href' in a.attrs:
             link = a['href']
@@ -264,8 +289,6 @@ def collect_links_from_page(url, page_content, prefix):
             if norm_link is not None:
                 if 'login' not in norm_link and is_social_networking_url(norm_link) == False:
                     print(f"Found link: {norm_link}")
-                    # Only add this link to the crawling queue (set) if the prefix is an empty string
-                    # or if this link starts with the prefix
                     if prefix.strip() == "" or ((len(prefix.strip()) > 0) and norm_link.startswith(prefix.strip())):
                         links_set.add(norm_link)
 
@@ -521,7 +544,7 @@ def predict_ai21():
     print(type(body))
     question = body['prompt']
     print(question)
-    memory_chain.chat_memory.add_user_message(question)
+    # memory_chain.chat_memory.add_user_message(question)
 
     qa = ConversationalRetrievalChain.from_llm(
         llm=cl_llm,
@@ -549,9 +572,12 @@ def predict_ai21():
     trychat.append((question, ''))
     print(CONDENSE_QUESTION_PROMPT1.template)
     prediction = qa.run(question=question)
-    prediction = extract_text_after_keyword(prediction, 'Assistant:')
+    print('prediction')
+    print(prediction)
+    # prediction = extract_text_after_keyword(prediction, 'Assistant:')
+
     print("prediction:",prediction)
-    memory_chain.chat_memory.add_ai_message(prediction)
+    # memory_chain.chat_memory.add_ai_message(prediction)
     return jsonify(prediction)
 
 ### ai21 kendra
@@ -591,7 +617,7 @@ def predict_ai21_kendra():
     trychat.append((question, ''))
     print(CONDENSE_QUESTION_PROMPT1.template)
     prediction = qa.run(question=question)
-    prediction = extract_text_after_keyword(prediction, 'Assistant:')
+    # prediction = extract_text_after_keyword(prediction, 'Assistant:')
     print("prediction:",prediction)
     memory_chain.chat_memory.add_ai_message(prediction)
     return jsonify(prediction)

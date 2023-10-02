@@ -32,23 +32,7 @@ For the Flask backend, you'll need to have:
 For the React frontend, you'll need to install the following:
 1. [Node.js & npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 2. Install the NPM dependencies with `npm install`
-3. Deploy our Cognito UserPool with cdk. To do this:
-    - `cd cdk`
-    - Next, we should create and activate a python virtual envrionment. This allows us the ability to contain our python and python package version requirements without conflicting with other versions on our local system. 
-        1. `python3 -m venv .venv`
-        2. `source .venv/bin/activate`
-    - Next, install the python dependencies with: `python3 -m pip install -r requirements.txt`
-    - We can now bootstrap our environment with: `cdk bootstrap aws://<account number>/<region> --profile <profile>` (--profile flag is optional, remove if you want to use default aws cli credentials)
 
->If "No module named 'aws_cdk' error" on Step 4, or earlier:
->   Run `npm install -g aws-cdk@latest`
-
-4. We can now deploy the CDK project with: `cdk deploy --profile <profile>` (--profile flag is optional, remove if you want to use default aws cli credentials)
-5. CDK will print Outputs following deployment of the resources therein. You'll need to update a few commands and variables found in `./src/aws-exports.js` using the output values:
-    - Use the value of `CdkStack.cognitoappclientid` to update the value for `aws_user_pools_web_client_id`
-    - Use the value of `CdkStack.cognitouserpoolclientid` to update the value for `aws_user_pools_id`
-    - Be sure to update any values for region that do not match the region you deployed the CDK app in.
-6. The CDK deployment does not handle creating a user in the user-pool. To do this, head into the AWS Cognito Console, click the userpool you created `DemoPoolxxxxxxxxxxxxx`, and click `Create user`. ***Important: The username field must be a full email address and not just an alias.
 
 
 ## IAM Permission

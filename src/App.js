@@ -8,7 +8,7 @@ import Anthropic from './Anthropic';
 import Amazon from './Amazon';
 import AI21 from './AI21'
 import StableDiffusion from './StableDiffusion';
-import { withAuthenticator, Button, Menu, MenuItem, MenuButton } from '@aws-amplify/ui-react';
+import { Button, Menu, MenuItem, MenuButton } from '@aws-amplify/ui-react';
 
 const modelOptions = [
     'Anthropic: Claude',
@@ -163,5 +163,5 @@ const App = ({ signOut }) => {
     );
 }
 
-export default withAuthenticator(App);
-// export default App;
+
+export default App;
