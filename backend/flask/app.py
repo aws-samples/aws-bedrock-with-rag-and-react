@@ -170,6 +170,14 @@ def delete_files_in_directory_older_than_7days(directory_path, days_old=7):
     except Exception as e:
         print(f"Error: {e}")
 
+def input_validation(input_str):
+    pattern = r'^[a-zA-Z0-9\s\-!@#$%^&*(),.?":{}|<>]{1,1000}$'
+
+    if re.match(pattern, input_str):
+        return True
+    else:
+        return False
+
 def parse_url_from_str(arg):
     url = urlparse(arg)
     if all((url.scheme, url.netloc)):  # possibly other sections?
@@ -405,40 +413,41 @@ def predict_conversation1():
     print(payload)
     body = json.loads(payload['body'])
     question = body.get('prompt', '')
-    print("question:",question)
-    memory_chain.chat_memory.add_user_message(question)
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=cl_llm,
-        retriever=vectorstore_faiss_aws.as_retriever(),
-        memory=memory_chain,
-        get_chat_history=_get_chat_history,
-        verbose = True,
-        condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
-        chain_type='stuff',
-    )
+    if input_validation(question):
+        print("question:",question)
+        memory_chain.chat_memory.add_user_message(question)
+        qa = ConversationalRetrievalChain.from_llm(
+            llm=cl_llm,
+            retriever=vectorstore_faiss_aws.as_retriever(),
+            memory=memory_chain,
+            get_chat_history=_get_chat_history,
+            verbose = True,
+            condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
+            chain_type='stuff',
+        )
 
-    # the LLMChain prompt to get the answer. the ConversationalRetrievalChange does not expose this parameter in the constructor
-    qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
-    {context}
+        # the LLMChain prompt to get the answer. the ConversationalRetrievalChange does not expose this parameter in the constructor
+        qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
+        {context}
 
-    Human: %s
-    <q>{question}</q>
+        Human: %s
+        <q>{question}</q>
 
-    Assistant:""" % (
-        vector_database.prompt_template
-    ))
+        Assistant:""" % (
+            vector_database.prompt_template
+        ))
 
-    trychat = chathistory1
-    chat_history = trychat 
-    print("chat_history:",chat_history)
-    
-    trychat.append((question, ''))
-    print(CONDENSE_QUESTION_PROMPT1.template)
-    prediction = qa.run(question=question)
+        trychat = chathistory1
+        chat_history = trychat 
+        print("chat_history:",chat_history)
+        
+        trychat.append((question, ''))
+        print(CONDENSE_QUESTION_PROMPT1.template)
+        prediction = qa.run(question=question)
 
-    print("prediction:",prediction)
-    memory_chain.chat_memory.add_ai_message(prediction)
-    return jsonify(prediction)
+        print("prediction:",prediction)
+        memory_chain.chat_memory.add_ai_message(prediction)
+        return jsonify(prediction)
 
 ### claude
 @app.route('/api/conversation/predict-claude-kendra', methods=['POST','PUT'])
@@ -479,21 +488,22 @@ def predict_conversation_kendra():
     body = json.loads(payload['body'])
     question = body.get('prompt', '')
     print("question:",question)
-    #question = payload['question']
+    if input_validation(question):
+        #question = payload['question']
 
-    trychat = chathistory1
-    chat_history = trychat 
-    print("chat_history:",chat_history)
-    
-    # Append the new question to the chat history
-    trychat.append((question, ''))
-    # Generate the prediction from the Conversational Retrieval Chain
-    print(CONDENSE_QUESTION_PROMPT1.template)
-    prediction = qa.run(question=question)
-    print("prediction:",prediction)
-    
-    # Return the prediction as a JSON response
-    return jsonify(prediction)
+        trychat = chathistory1
+        chat_history = trychat 
+        print("chat_history:",chat_history)
+        
+        # Append the new question to the chat history
+        trychat.append((question, ''))
+        # Generate the prediction from the Conversational Retrieval Chain
+        print(CONDENSE_QUESTION_PROMPT1.template)
+        prediction = qa.run(question=question)
+        print("prediction:",prediction)
+        
+        # Return the prediction as a JSON response
+        return jsonify(prediction)
 
 
 def extract_text_after_keyword(input_string, keyword):
@@ -514,40 +524,40 @@ def predict_ai21():
     
     body = request.json
     question = body['prompt']
+    if input_validation(question):
+        qa = ConversationalRetrievalChain.from_llm(
+            llm=cl_llm,
+            retriever=vectorstore_faiss_aws.as_retriever(),
+            memory=memory_chain,
+            get_chat_history=_get_chat_history,
+            verbose = True,
+            condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
+            chain_type='stuff',
+        )
+        qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
+        {context}
 
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=cl_llm,
-        retriever=vectorstore_faiss_aws.as_retriever(),
-        memory=memory_chain,
-        get_chat_history=_get_chat_history,
-        verbose = True,
-        condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
-        chain_type='stuff',
-    )
-    qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
-    {context}
+        Human: %s
+        <q>{question}</q>
 
-    Human: %s
-    <q>{question}</q>
+        Assistant:""" % (
+            vector_database.prompt_template
+        ))
 
-    Assistant:""" % (
-        vector_database.prompt_template
-    ))
+        trychat = chathistory1
+        chat_history = trychat 
+        print("chat_history:",chat_history)
+        
+        trychat.append((question, ''))
+        print(CONDENSE_QUESTION_PROMPT1.template)
+        prediction = qa.run(question=question)
+        print('prediction')
+        print(prediction)
+        # prediction = extract_text_after_keyword(prediction, 'Assistant:')
 
-    trychat = chathistory1
-    chat_history = trychat 
-    print("chat_history:",chat_history)
-    
-    trychat.append((question, ''))
-    print(CONDENSE_QUESTION_PROMPT1.template)
-    prediction = qa.run(question=question)
-    print('prediction')
-    print(prediction)
-    # prediction = extract_text_after_keyword(prediction, 'Assistant:')
-
-    print("prediction:",prediction)
-    # memory_chain.chat_memory.add_ai_message(prediction)
-    return jsonify(prediction)
+        print("prediction:",prediction)
+        # memory_chain.chat_memory.add_ai_message(prediction)
+        return jsonify(prediction)
 
 ### ai21 kendra
 @app.route('/api/conversation/predict-ai21-kendra', methods=['POST','PUT'])
@@ -557,39 +567,40 @@ def predict_ai21_kendra():
     body = request.json
     print(type(body))
     question = body['prompt']
-    print(question)
-    memory_chain.chat_memory.add_user_message(question)
+    if input_validation(question):
+        print(question)
+        memory_chain.chat_memory.add_user_message(question)
 
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=cl_llm,
-        retriever=vector_database.kendra_retriever,
-        memory=memory_chain,
-        get_chat_history=_get_chat_history,
-        verbose = True,
-        condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
-        chain_type='stuff',
-    )
-    qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
-    {context}
+        qa = ConversationalRetrievalChain.from_llm(
+            llm=cl_llm,
+            retriever=vector_database.kendra_retriever,
+            memory=memory_chain,
+            get_chat_history=_get_chat_history,
+            verbose = True,
+            condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
+            chain_type='stuff',
+        )
+        qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
+        {context}
 
-    Human: %s
-    <q>{question}</q>
+        Human: %s
+        <q>{question}</q>
 
-    Assistant:""" % (
-        vector_database.prompt_template
-    ))
+        Assistant:""" % (
+            vector_database.prompt_template
+        ))
 
-    trychat = chathistory1
-    chat_history = trychat 
-    print("chat_history:",chat_history)
-    
-    trychat.append((question, ''))
-    print(CONDENSE_QUESTION_PROMPT1.template)
-    prediction = qa.run(question=question)
-    # prediction = extract_text_after_keyword(prediction, 'Assistant:')
-    print("prediction:",prediction)
-    memory_chain.chat_memory.add_ai_message(prediction)
-    return jsonify(prediction)
+        trychat = chathistory1
+        chat_history = trychat 
+        print("chat_history:",chat_history)
+        
+        trychat.append((question, ''))
+        print(CONDENSE_QUESTION_PROMPT1.template)
+        prediction = qa.run(question=question)
+        # prediction = extract_text_after_keyword(prediction, 'Assistant:')
+        print("prediction:",prediction)
+        memory_chain.chat_memory.add_ai_message(prediction)
+        return jsonify(prediction)
 
 ### titan
 @app.route('/api/conversation/predict-titan', methods=['POST','PUT'])
@@ -601,43 +612,44 @@ def predict_titan():
     print(body)
     question = body['inputText']
     print(question)
-    cl_llm = Bedrock(model_id='amazon.titan-tg1-large', client=bedrock_client) # change model_id here
+    if input_validation(question):
+        cl_llm = Bedrock(model_id='amazon.titan-tg1-large', client=bedrock_client) # change model_id here
 
-    memory_chain.chat_memory.add_user_message(question)
+        memory_chain.chat_memory.add_user_message(question)
 
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=cl_llm,
-        retriever=vectorstore_faiss_aws.as_retriever(),
-        memory=memory_chain,
-        get_chat_history=_get_chat_history,
-        verbose = True,
-        condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
-        chain_type='stuff',
-    )
-    qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
-    {context}
+        qa = ConversationalRetrievalChain.from_llm(
+            llm=cl_llm,
+            retriever=vectorstore_faiss_aws.as_retriever(),
+            memory=memory_chain,
+            get_chat_history=_get_chat_history,
+            verbose = True,
+            condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
+            chain_type='stuff',
+        )
+        qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
+        {context}
 
-    Human: %s
-    <q>{question}</q>
+        Human: %s
+        <q>{question}</q>
 
-    Assistant:""" % (
-        vector_database.prompt_template
-    ))
+        Assistant:""" % (
+            vector_database.prompt_template
+        ))
 
-    trychat = chathistory1
-    chat_history = trychat 
-    print("chat_history:",chat_history)
-    
-    trychat.append((question, ''))
-    print(CONDENSE_QUESTION_PROMPT1.template)
-    prediction = qa.run(question=question)
-    print("prediction:",prediction)
-    memory_chain.chat_memory.add_ai_message(prediction)
+        trychat = chathistory1
+        chat_history = trychat 
+        print("chat_history:",chat_history)
+        
+        trychat.append((question, ''))
+        print(CONDENSE_QUESTION_PROMPT1.template)
+        prediction = qa.run(question=question)
+        print("prediction:",prediction)
+        memory_chain.chat_memory.add_ai_message(prediction)
 
-    resres = {
-        'output_text': prediction
-    }
-    return resres
+        resres = {
+            'output_text': prediction
+        }
+        return resres
 
 ### titan kendra
 @app.route('/api/conversation/predict-titan-kendra', methods=['POST','PUT'])
@@ -646,44 +658,45 @@ def predict_titan_kendra():
     print(type(body))
     print(body)
     question = body['inputText']
-    print(question)
-    cl_llm = Bedrock(model_id='amazon.titan-tg1-large', client=bedrock_client) # change model_id here
+    if input_validation(question):
+        print(question)
+        cl_llm = Bedrock(model_id='amazon.titan-tg1-large', client=bedrock_client) # change model_id here
 
-    memory_chain.chat_memory.add_user_message(question)
+        memory_chain.chat_memory.add_user_message(question)
 
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=cl_llm,
-        retriever=vector_database.kendra_retriever,
-        memory=memory_chain,
-        get_chat_history=_get_chat_history,
-        verbose = True,
-        condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
-        chain_type='stuff',
-    )
-    qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
-    {context}
+        qa = ConversationalRetrievalChain.from_llm(
+            llm=cl_llm,
+            retriever=vector_database.kendra_retriever,
+            memory=memory_chain,
+            get_chat_history=_get_chat_history,
+            verbose = True,
+            condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
+            chain_type='stuff',
+        )
+        qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
+        {context}
 
-    Human: %s
-    <q>{question}</q>
+        Human: %s
+        <q>{question}</q>
 
-    Assistant:""" % (
-        vector_database.prompt_template
-    ))
+        Assistant:""" % (
+            vector_database.prompt_template
+        ))
 
-    trychat = chathistory1
-    chat_history = trychat 
-    print("chat_history:",chat_history)
-    
-    trychat.append((question, ''))
-    print(CONDENSE_QUESTION_PROMPT1.template)
-    prediction = qa.run(question=question)
-    print("prediction:",prediction)
-    memory_chain.chat_memory.add_ai_message(prediction)
+        trychat = chathistory1
+        chat_history = trychat 
+        print("chat_history:",chat_history)
+        
+        trychat.append((question, ''))
+        print(CONDENSE_QUESTION_PROMPT1.template)
+        prediction = qa.run(question=question)
+        print("prediction:",prediction)
+        memory_chain.chat_memory.add_ai_message(prediction)
 
-    resres = {
-        'output_text': prediction
-    }
-    return resres
+        resres = {
+            'output_text': prediction
+        }
+        return resres
 
 ### stable diffusion
 @app.route('/api/call-stablediffusion', methods=['POST','PUT'])
@@ -695,15 +708,16 @@ def call_stable_diffusion():
     contentType = 'application/json'
     print(request)
     print(payload['body'])
-    response = bedrock_client.invoke_model(
-        body=payload['body'], 
-        modelId=modelId, 
-        accept=accept,
-        contentType=contentType
-    )
-    response_body = json.loads(response.get('body').read())
-
-    return response_body
+    print(json.loads(payload['body'])['text_prompts'][0]['text'])
+    if input_validation(json.loads(payload['body'])['text_prompts'][0]['text']):
+        response = bedrock_client.invoke_model(
+            body=payload['body'], 
+            modelId=modelId, 
+            accept=accept,
+            contentType=contentType
+        )
+        response_body = json.loads(response.get('body').read())
+        return response_body
 
 @app.route('/api/crawl', methods=['POST','PUT'])
 def crawl_save_pdf():
