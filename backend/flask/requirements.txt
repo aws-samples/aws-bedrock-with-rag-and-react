@@ -17,7 +17,7 @@ requests==2.31.0
 s3transfer==0.6.1
 six==1.16.0
 sqlparse==0.4.4
-urllib3==1.26.15
+urllib3==1.26.17
 Werkzeug==2.3.4
 faiss-cpu==1.7.4
 pypdf==3.9.0
