@@ -231,7 +231,7 @@ def send_devtools(driver, cmd, params={}):
 
 def save_as_pdf(driver, path, options={}):
     result = send_devtools(driver, "Page.printToPDF", options)
-    if (result is not None) and '404' not in path:
+    if (result is not None):
         with open(path, 'wb') as file:
             pdf_data = base64.b64decode(result['data'])
 
@@ -750,7 +750,7 @@ def crawl_save_pdf():
         os.makedirs("output")
 
     ## helper function for crawling
-    def crawl(url, max_depth=1, current_depth=1, current_pg_cnt=0, element_id='', prefix=''):
+    def crawl(url, max_depth=3, current_depth=1, current_pg_cnt=0, element_id='', prefix=''):
         if url in crawled or current_depth > max_depth:
             return
         crawled.add(url)
@@ -758,8 +758,8 @@ def crawl_save_pdf():
         try:
             chrome_options = webdriver.ChromeOptions()
             chrome_options.headless = True
-            chrome_options.add_argument('--disable-gpu')
-            chrome_options.add_argument("--no-sandbox")
+            # chrome_options.add_argument('--disable-gpu')
+            # chrome_options.add_argument("--no-sandbox")
 
             driver = webdriver.Chrome(options=chrome_options)
             driver.implicitly_wait(PAGE_LOAD_TIMEOUT)
