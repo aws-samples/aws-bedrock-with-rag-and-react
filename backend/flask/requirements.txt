@@ -22,7 +22,7 @@ Werkzeug==2.3.4
 faiss-cpu==1.7.4
 pypdf==3.9.0
 pypdf2==3.0.1
-langchain==0.0.305
+langchain==0.0.308
 anthropic==0.2.10
 tika==2.6.0
 bs4==0.0.1
