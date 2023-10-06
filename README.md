@@ -55,10 +55,12 @@ Your flask backend will need permissions to call the Bedrock API. More specifica
   ]
 }
 ```
+Please note : When creating this IAM role, follow the best practice of granting [least privileged access.](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege)
 
 6. Create programmatic access keys/CLI credentials.
 7. Run `aws configure --profile <name_of_profile>'
 7. On line 62 of `backend/flask/app.py`, include the name of your AWS CLI Profile you configured.
+   
 
 
 ## How to Run
