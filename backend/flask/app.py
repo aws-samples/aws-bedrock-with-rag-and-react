@@ -50,8 +50,9 @@ aws_region = 'us-west-2'
 aws_service = 'bedrock'
 chathistory = []
 
-aws_cli_profile_name = 'general'
+aws_cli_profile_name = ''
 session = boto3.Session(profile_name=aws_cli_profile_name)
+# session = boto3.Session()
 bedrock_client = session.client(service_name='bedrock', region_name=aws_region, endpoint_url='https://bedrock-runtime.'+aws_region+'.amazonaws.com')
 pdf_directory = './output'
 
@@ -81,6 +82,10 @@ class VectorDatabase:
         # # Initialize Bedrock embeddings
         self.br_embeddings = BedrockEmbeddings(client=bedrock_client, model_id='amazon.titan-embed-text-v1')
         print(f"br_embeddings: {self.br_embeddings}")
+
+        # Create the local download folder if it doesn't exist
+        if not os.path.exists(pdf_directory):
+            os.makedirs(pdf_directory)
 
         
         loader = PyPDFDirectoryLoader(pdf_directory)
@@ -858,10 +863,18 @@ def upload_pdfs():
     if not pdf_files:
         return jsonify({'error': 'No selected files'}), 400
     saved_files = []
+    
+    # Get the directory path from app.config['UPLOAD_FOLDER']
+    upload_folder = app.config['UPLOAD_FOLDER']
+    
+    # Create the directory if it doesn't exist
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+    
     for pdf_file in pdf_files:
         if pdf_file.filename == '':
             continue
-        pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], pdf_file.filename)
+        pdf_path = os.path.join(upload_folder, pdf_file.filename)
         pdf_file.save(pdf_path)
         saved_files.append(pdf_file.filename)
     
