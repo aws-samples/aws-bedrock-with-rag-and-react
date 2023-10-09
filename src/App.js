@@ -109,7 +109,7 @@ const App = ({ signOut }) => {
                     ))}
                     </Menu>
                 </div>
-                <Button className="signOut" onClick={signOut}>Sign out</Button>
+                {/* <Button className="signOut" onClick={signOut}>Sign out</Button> */}
             </div>
 
             <div id="ContentSection">
