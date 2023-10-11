@@ -344,15 +344,11 @@ Given the following conversation and a follow up question, rephrase the follow u
 Chat History:
 {chat_history}
 Follow Up Input: {question}
-Standalone question:
+
 """
 
 CONDENSE_QUESTION_PROMPT1 = PromptTemplate.from_template(_template_new)
 
-prompt_template1 = """
-Use the following pieces of context to answer the question at the end. If you don't know the answer, use your judgement to answer from your knowledge and be precise. Dont fake the answer.
-{context}
-"""
 
 memory_chain = ConversationBufferMemory()
 
@@ -420,38 +416,32 @@ def predict_conversation1():
     question = body.get('prompt', '')
     if input_validation(question):
         print("question:",question)
-        memory_chain.chat_memory.add_user_message(question)
+        #memory_chain.chat_memory.add_user_message(question)
         qa = ConversationalRetrievalChain.from_llm(
             llm=cl_llm,
             retriever=vectorstore_faiss_aws.as_retriever(),
             memory=memory_chain,
-            get_chat_history=_get_chat_history,
+            #get_chat_history=_get_chat_history,
             verbose = True,
             condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
             chain_type='stuff',
         )
-
         # the LLMChain prompt to get the answer. the ConversationalRetrievalChange does not expose this parameter in the constructor
         qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
         {context}
-
-        Human: %s
+        %s
         <q>{question}</q>
-
-        Assistant:""" % (
+        """ % (
             vector_database.prompt_template
         ))
-
         trychat = chathistory1
-        chat_history = trychat 
+        chat_history = trychat
         print("chat_history:",chat_history)
-        
         trychat.append((question, ''))
         print(CONDENSE_QUESTION_PROMPT1.template)
         prediction = qa.run(question=question)
-
         print("prediction:",prediction)
-        memory_chain.chat_memory.add_ai_message(prediction)
+        #memory_chain.chat_memory.add_ai_message(prediction)
         return jsonify(prediction)
 
 ### claude
