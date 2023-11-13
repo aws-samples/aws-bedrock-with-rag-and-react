@@ -9,7 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "aws-amplify": "^5.0.14",
     "aws-sdk": "^2.1414.0",
-    "axios": "^1.4.0",
+    "axios": "^1.6.0",
     "buffer": "^6.0.3",
     "graphql": "^16.6.0",
     "http-proxy-middleware": "^2.0.6",
