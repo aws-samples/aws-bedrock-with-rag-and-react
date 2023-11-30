@@ -80,7 +80,8 @@ class VectorDatabase:
 
     def initialize_vector_db(self, pdf_directory):
         # # Initialize Bedrock embeddings
-        self.br_embeddings = BedrockEmbeddings(client=bedrock_client, model_id='amazon.titan-embed-text-v1')
+        self.br_embeddings = BedrockEmbeddings(client=bedrock_client,region_name=aws_region, credentials_profile_name=aws_cli_profile_name 
+                                               ,model_id='amazon.titan-embed-text-v1',endpoint_url='https://bedrock-runtime.'+aws_region+'.amazonaws.com')
         print(f"br_embeddings: {self.br_embeddings}")
 
         # Create the local download folder if it doesn't exist
