@@ -29,3 +29,4 @@ fpdf==1.7.2
 selenium==4.11.2
 flask-cors==4.0.0
 opensearch-py==2.3.0
+boto3

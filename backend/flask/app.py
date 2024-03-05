@@ -1,6 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
-
+ 
 from flask import Flask, render_template, request, jsonify
 import requests
 import json
@@ -12,10 +12,12 @@ from langchain.memory import ConversationBufferMemory
 from langchain import PromptTemplate
 from langchain.llms.bedrock import Bedrock
 from langchain.embeddings import BedrockEmbeddings
+#from langchain_community.embeddings import BedrockEmbeddings
 from langchain.vectorstores import FAISS
+#from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.schema import BaseMessage
-from langchain.llms.bedrock import Bedrock
+# from langchain.llms.bedrock import Bedrock
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.indexes import VectorstoreIndexCreator
 from langchain.document_loaders.pdf import (
@@ -36,31 +38,34 @@ import time
 import base64
 from urllib.parse import urljoin
 from urllib.parse import urlparse
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from langchain.retrievers import AmazonKendraRetriever
 from opensearchpy import OpenSearch
 from opensearchpy.connection import RequestsHttpConnection
 from threading import Lock
 from argparse import ArgumentTypeError
-
+ 
 app = Flask(__name__)
 CORS(app)
-
-aws_region = 'us-west-2'
-aws_service = 'bedrock'
+app.config['CORS_HEADERS'] = 'Content-Type'
+ 
+aws_region = 'us-east-1'
+# aws_service = 'bedrock'
 chathistory = []
+ 
+# aws_cli_profile_name = 'raminwillfinall'
+# session = boto3.Session(profile_name=aws_cli_profile_name)
 
-aws_cli_profile_name = ''
-session = boto3.Session(profile_name=aws_cli_profile_name)
-# session = boto3.Session()
-bedrock_client = session.client(service_name='bedrock', region_name=aws_region, endpoint_url='https://bedrock-runtime.'+aws_region+'.amazonaws.com')
+session = boto3.Session()
+#bedrock_client = session.client(service_name='bedrock', region_name=aws_region, endpoint_url='https://bedrock-runtime.'+aws_region+'.amazonaws.com')
+bedrock_client = session.client('bedrock-runtime',region_name=aws_region)
 pdf_directory = './output'
-
+ 
 app.config['UPLOAD_FOLDER'] = 'output'
 lock = Lock()
 vectordatabase_intialized = False
-
-
+ 
+ 
 class VectorDatabase:
     def __init__(self):
         self.br_embeddings = None
@@ -68,25 +73,32 @@ class VectorDatabase:
         self.kendra_client = None
         self.kendra_retriever = None
         self.vector_initialized = False
-        self.prompt_template = "Use the context to answer the question at the end. If you don't know the answer from the context, do not answer from your knowledge and be precise. Dont fake the answer."
+        self.prompt_template = '''Use the context provided to answer the question at the end. When providing your response, follow this template and format:
 
+                                    - Citation: (This section should include the document name and page number where the correct answer was found. Only the title 'Citation' should be bold.Ensure this section is on a separate line.)
+                                    - Answer: (This section should provide the direct answer to the question based on the document context. Only the title 'Answer' should be bold.Ensure this section is on a separate line.)
+                                    - Long Synopsis: (This section should include a detailed summary of the document where the correct answer was found. Only the title 'Long Synopsis' should be bold.Ensure this section is on a separate line.)
+                                    - Short Synopsis: (This section should provide a brief summary of the document. Only the title 'Short Synopsis' should be bold.Ensure this section is on a separate line.)
+                                    - Next Suggested Questions: (This section should suggest three follow-up questions based on the context, chat history, and the current question. Only the title 'Next Suggested Questions' should be bold.Ensure this section is on a separate line.)
+                                    Your response should only contain the above parts do not add anything else.Each part should be clearly separated, with each title in bold, and each section starting on a new line.Provide your answer only in English.If the correct answer is not available from the context given, do not supplement from your own knowledge. Be precise and do not fabricate the answer. Follow these guidelines strictly'''
+ 
     def update_prompt_template(self, template):
         self.prompt_template = template
         return True
-
+ 
     def destroy_vector_db(self):
         self.vectorstore_faiss_aws = None
         self.vector_initialized = False
-
+ 
     def initialize_vector_db(self, pdf_directory):
         # # Initialize Bedrock embeddings
         self.br_embeddings = BedrockEmbeddings(client=bedrock_client, model_id='amazon.titan-embed-text-v1')
         print(f"br_embeddings: {self.br_embeddings}")
-
+ 
         # Create the local download folder if it doesn't exist
         if not os.path.exists(pdf_directory):
             os.makedirs(pdf_directory)
-
+ 
         
         loader = PyPDFDirectoryLoader(pdf_directory)
         documents = loader.load()
@@ -108,10 +120,10 @@ class VectorDatabase:
         )
         self.vector_initialized = True
         print(f"vectorstore_faiss_aws: number of elements in the index={self.vectorstore_faiss_aws.index.ntotal}::")
-
-
+ 
+ 
     
-
+ 
     def instantiate_kendra(self, profile_name, index_id):
         try:
             session = boto3.Session(profile_name=profile_name)
@@ -120,7 +132,7 @@ class VectorDatabase:
             return True
         except Exception as e:
             return e
-
+ 
     def download_files_s3(self, profile, location):
         print('starting s3 download')
         s3_session = boto3.Session(
@@ -135,11 +147,11 @@ class VectorDatabase:
             prefix = prefix.split('/')[0]
         
         objects = s3_client.list_objects(Bucket=bucket_name, Prefix=prefix)
-
+ 
         # Create the local download folder if it doesn't exist
         if not os.path.exists(pdf_directory):
             os.makedirs(pdf_directory)
-
+ 
         # Download each object from the bucket
         for obj in objects['Contents']:
             file_key = obj['Key']
@@ -150,45 +162,45 @@ class VectorDatabase:
         
         download_count = len(objects['Contents'])
         return download_count
-
+ 
 vector_database = VectorDatabase()
 vector_database.initialize_vector_db(pdf_directory)
-
+ 
 # Helper Functions
 def delete_files_in_directory_older_than_7days(directory_path, days_old=7):
     try:
         # Get the current time
         current_time = time.time()
-
+ 
         # Get a list of all files in the directory
         files = os.listdir(directory_path)
-
+ 
         # Loop through the files
         for file_name in files:
             file_path = os.path.join(directory_path, file_name)
-
+ 
             # Check if it's a file and if it's older than 7 days
             if os.path.isfile(file_path) and (current_time - os.path.getmtime(file_path)) > days_old * 86400:
                 os.remove(file_path)
-
+ 
         print(f"Files older than {days_old} days in the directory have been deleted.")
     except Exception as e:
         print(f"Error: {e}")
-
+ 
 def input_validation(input_str):
     pattern = r'^[a-zA-Z0-9\s\-!@#$%^&*(),.?":{}|<>]{1,1000}$'
-
+ 
     if re.match(pattern, input_str):
         return True
     else:
         return False
-
+ 
 def parse_url_from_str(arg):
     url = urlparse(arg)
     if all((url.scheme, url.netloc)):  # possibly other sections?
         return arg  # return url in case you need the parsed object
     raise ArgumentTypeError('Invalid URL')
-
+ 
 def remove_unwanted_content(driver, pdf_data):
     # Execute JavaScript to hide specific elements before saving as PDF
     # You can add more JavaScript code here to hide different elements as needed
@@ -202,7 +214,7 @@ def remove_unwanted_content(driver, pdf_data):
             }
         });
     """
-
+ 
     ex =  '''      
         // Hide elements with specific class names
         var classNamesToHide = ['advertisement', 'sidebar', 'header'];
@@ -213,10 +225,10 @@ def remove_unwanted_content(driver, pdf_data):
             }
         });
         '''
-
+ 
     # Execute the JavaScript code in the context of the current page
     driver.execute_script(hide_elements_js)
-
+ 
     # Generate the updated PDF data
     result = send_devtools(driver, "Page.printToPDF", {})
     if (result is not None):
@@ -233,37 +245,37 @@ def send_devtools(driver, cmd, params={}):
         return response.get('value')
     else:
         return None
-
+ 
 def save_as_pdf(driver, path, options={}):
     result = send_devtools(driver, "Page.printToPDF", options)
     if (result is not None):
         with open(path, 'wb') as file:
             pdf_data = base64.b64decode(result['data'])
-
+ 
             pdf_data = remove_unwanted_content(driver, pdf_data)
-
+ 
             file.write(pdf_data)
         return True
     else:
         return False
-
+ 
 def delete_files_in_directory(directory_path):
     try:
         files = os.listdir(directory_path)
-
+ 
         for file_name in files:
             file_path = os.path.join(directory_path, file_name)
             if os.path.isfile(file_path):
                 os.remove(file_path)
-
+ 
         print("All files in the PDF output directory have been deleted.")
     except Exception as e:
         print(f"Error: {e}")
-
+ 
 def get_title_from_page(page_content):
     soup = BeautifulSoup(page_content, 'html.parser')
     return soup.title.string
-
+ 
 def collect_links_from_page(url, page_content, prefix):
     soup = BeautifulSoup(page_content, 'html.parser')
     links_set = set()
@@ -276,13 +288,13 @@ def collect_links_from_page(url, page_content, prefix):
                     print(f"Found link: {norm_link}")
                     if prefix.strip() == "" or ((len(prefix.strip()) > 0) and norm_link.startswith(prefix.strip())):
                         links_set.add(norm_link)
-
+ 
     return links_set
-
+ 
 # Convert relative links to absolute urls
 def url_normalizer(parent_url, link):
-    # comparator = 
-
+    # comparator =
+ 
     if link.startswith('#') or link.startswith('../'):
         link = urljoin(parent_url, link)
     elif link.startswith('/'):
@@ -295,15 +307,15 @@ def url_normalizer(parent_url, link):
             parse_url_from_str(link)
         except Exception as e:
             link = urljoin(parent_url, link)
-
+ 
     # Validate that link is a valid URL
     try:
         parse_url_from_str(link)
     except Exception as e:
         print(f'Error normalizing {link} - {e}')
         return
-    return link 
-
+    return link
+ 
 # We are also providing a different chat history retriever which outputs the history as a Claude chat (ie including the \n\n)
 _ROLE_MAP = {"human": "\n\nHuman: ", "ai": "\n\nAssistant: "}
 def _get_chat_history(chat_history):
@@ -322,7 +334,7 @@ def _get_chat_history(chat_history):
                 f" Full chat history: {chat_history} "
             )
     return buffer
-
+ 
 def is_social_networking_url(url):
     social_networks = ["facebook", "twitter", "instagram", "linkedin", "youtube", "google", "apple"]
     # print('checking url for social network')
@@ -331,34 +343,37 @@ def is_social_networking_url(url):
             # print('url had social media or otherwise. it should not be included')
             return True
     return False
-
+ 
 @app.route('/')
+@cross_origin()
 def index():
     return render_template('index.html')
-
+ 
 chathistory1 = []
-
-
+ 
+ 
 _template_new = """
 Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
 Chat History:
 {chat_history}
 Follow Up Input: {question}
-
+ 
 """
-
+ 
 CONDENSE_QUESTION_PROMPT1 = PromptTemplate.from_template(_template_new)
-
-
+ 
+ 
 memory_chain = ConversationBufferMemory()
-
+ 
 ### claude options middleware
 @app.route('/api/conversation/claude-middleware', methods=['POST','PUT'])
+@cross_origin()
 def claude_middleware():
     # Get the input from the request payload
     #print the langchain version
     payload = request.get_json()    
     body = json.loads(payload['body'])
+    print(body)
     vector = body.get('vector')
     if vector == 'faiss':
         print('using faiss vector')
@@ -371,6 +386,7 @@ def claude_middleware():
     
 ### titan options middleware
 @app.route('/api/conversation/titan-middleware', methods=['POST','PUT'])
+@cross_origin()
 def titan_middleware():
     # Get the input from the request payload
     #print the langchain version
@@ -388,6 +404,7 @@ def titan_middleware():
     
 ### ai21 options middleware
 @app.route('/api/conversation/ai21-middleware', methods=['POST','PUT'])
+@cross_origin()
 def ai21_middleware():
     # Get the input from the request payload
     #print the langchain version
@@ -402,11 +419,12 @@ def ai21_middleware():
         print('using kendra vector')
         response = predict_ai21_kendra()
         return response
-
+ 
 memory_chain = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
+ 
 ### claude
 @app.route('/api/conversation/predict-claude', methods=['POST','PUT'])
+@cross_origin()
 def predict_conversation1():
     vectorstore_faiss_aws = vector_database.vectorstore_faiss_aws
     payload = request.get_json()
@@ -443,14 +461,15 @@ def predict_conversation1():
         print("prediction:",prediction)
         #memory_chain.chat_memory.add_ai_message(prediction)
         return jsonify(prediction)
-
+ 
 ### claude
 @app.route('/api/conversation/predict-claude-kendra', methods=['POST','PUT'])
+@cross_origin()
 def predict_conversation_kendra():
      # Get the input from the request payload
     #print the langchain version
     payload = request.get_json()
-
+ 
     # cl_llm = Bedrock(model_id="anthropic.claude-v1", client=bedrock_client, model_kwargs={"max_tokens_to_sample": 500}) # change model_id here
     cl_llm = Bedrock(model_id="anthropic.claude-v2", client=bedrock_client, model_kwargs={"max_tokens_to_sample": 500}) # change model_id here
     memory_chain = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
@@ -464,20 +483,20 @@ def predict_conversation_kendra():
         condense_question_prompt=CONDENSE_QUESTION_PROMPT1,
         chain_type='stuff',
     )
-
+ 
     # the LLMChain prompt to get the answer. the ConversationalRetrievalChange does not expose this parameter in the constructor
     qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
-
+ 
     {context}
-
+ 
     Human: %s
     <q>{question}</q>
-
-
+ 
+ 
     Assistant:""" % (
         vector_database.prompt_template
     ))
-
+ 
     print(payload)
     # Get the input text from the payload
     body = json.loads(payload['body'])
@@ -485,9 +504,9 @@ def predict_conversation_kendra():
     print("question:",question)
     if input_validation(question):
         #question = payload['question']
-
+ 
         trychat = chathistory1
-        chat_history = trychat 
+        chat_history = trychat
         print("chat_history:",chat_history)
         
         # Append the new question to the chat history
@@ -499,8 +518,8 @@ def predict_conversation_kendra():
         
         # Return the prediction as a JSON response
         return jsonify(prediction)
-
-
+ 
+ 
 def extract_text_after_keyword(input_string, keyword):
     start_index = input_string.find(keyword)
     
@@ -509,13 +528,14 @@ def extract_text_after_keyword(input_string, keyword):
         return text_after_keyword
     else:
         return None
-
-
+ 
+ 
 ### ai21
 @app.route('/api/conversation/predict-ai21', methods=['POST','PUT'])
+@cross_origin()
 def predict_ai21():
     vectorstore_faiss_aws = vector_database.vectorstore_faiss_aws
-    cl_llm = Bedrock(model_id="ai21.j2-grande-instruct", client=bedrock_client, model_kwargs={"maxTokens": 200, "temperature": 0.5, "topP": 0.5, "stopSequences": [], "countPenalty": {"scale": 0}, "presencePenalty": {"scale": 0}, "frequencyPenalty": {"scale": 0}}) # change model_id here
+    cl_llm = Bedrock(model_id="ai21.j2-ultra-v1", client=bedrock_client, model_kwargs={"maxTokens": 200, "temperature": 0.5, "topP": 0.5, "stopSequences": [], "countPenalty": {"scale": 0}, "presencePenalty": {"scale": 0}, "frequencyPenalty": {"scale": 0}}) # change model_id here
     
     body = request.json
     question = body['prompt']
@@ -531,16 +551,16 @@ def predict_ai21():
         )
         qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
         {context}
-
+ 
         Human: %s
         <q>{question}</q>
-
+ 
         Assistant:""" % (
             vector_database.prompt_template
         ))
-
+ 
         trychat = chathistory1
-        chat_history = trychat 
+        chat_history = trychat
         print("chat_history:",chat_history)
         
         trychat.append((question, ''))
@@ -549,15 +569,16 @@ def predict_ai21():
         print('prediction')
         print(prediction)
         # prediction = extract_text_after_keyword(prediction, 'Assistant:')
-
+ 
         print("prediction:",prediction)
         # memory_chain.chat_memory.add_ai_message(prediction)
         return jsonify(prediction)
-
+ 
 ### ai21 kendra
 @app.route('/api/conversation/predict-ai21-kendra', methods=['POST','PUT'])
+@cross_origin()
 def predict_ai21_kendra():
-    cl_llm = Bedrock(model_id="ai21.j2-grande-instruct", client=bedrock_client, model_kwargs={"maxTokens": 200, "temperature": 0.5, "topP": 0.5, "stopSequences": [], "countPenalty": {"scale": 0}, "presencePenalty": {"scale": 0}, "frequencyPenalty": {"scale": 0}}) # change model_id here
+    cl_llm = Bedrock(model_id="ai21.j2-ultra-v1", client=bedrock_client, model_kwargs={"maxTokens": 200, "temperature": 0.5, "topP": 0.5, "stopSequences": [], "countPenalty": {"scale": 0}, "presencePenalty": {"scale": 0}, "frequencyPenalty": {"scale": 0}}) # change model_id here
     
     body = request.json
     print(type(body))
@@ -565,7 +586,7 @@ def predict_ai21_kendra():
     if input_validation(question):
         print(question)
         memory_chain.chat_memory.add_user_message(question)
-
+ 
         qa = ConversationalRetrievalChain.from_llm(
             llm=cl_llm,
             retriever=vector_database.kendra_retriever,
@@ -577,16 +598,16 @@ def predict_ai21_kendra():
         )
         qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
         {context}
-
+ 
         Human: %s
         <q>{question}</q>
-
+ 
         Assistant:""" % (
             vector_database.prompt_template
         ))
-
+ 
         trychat = chathistory1
-        chat_history = trychat 
+        chat_history = trychat
         print("chat_history:",chat_history)
         
         trychat.append((question, ''))
@@ -596,9 +617,10 @@ def predict_ai21_kendra():
         print("prediction:",prediction)
         memory_chain.chat_memory.add_ai_message(prediction)
         return jsonify(prediction)
-
+ 
 ### titan
 @app.route('/api/conversation/predict-titan', methods=['POST','PUT'])
+@cross_origin()
 def predict_titan():
     vectorstore_faiss_aws = vector_database.vectorstore_faiss_aws
     
@@ -609,9 +631,9 @@ def predict_titan():
     print(question)
     if input_validation(question):
         cl_llm = Bedrock(model_id='amazon.titan-tg1-large', client=bedrock_client) # change model_id here
-
+ 
         memory_chain.chat_memory.add_user_message(question)
-
+ 
         qa = ConversationalRetrievalChain.from_llm(
             llm=cl_llm,
             retriever=vectorstore_faiss_aws.as_retriever(),
@@ -623,16 +645,16 @@ def predict_titan():
         )
         qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
         {context}
-
+ 
         Human: %s
         <q>{question}</q>
-
+ 
         Assistant:""" % (
             vector_database.prompt_template
         ))
-
+ 
         trychat = chathistory1
-        chat_history = trychat 
+        chat_history = trychat
         print("chat_history:",chat_history)
         
         trychat.append((question, ''))
@@ -640,14 +662,15 @@ def predict_titan():
         prediction = qa.run(question=question)
         print("prediction:",prediction)
         memory_chain.chat_memory.add_ai_message(prediction)
-
+ 
         resres = {
             'output_text': prediction
         }
         return resres
-
+ 
 ### titan kendra
 @app.route('/api/conversation/predict-titan-kendra', methods=['POST','PUT'])
+@cross_origin()
 def predict_titan_kendra():
     body = request.json
     print(type(body))
@@ -655,10 +678,10 @@ def predict_titan_kendra():
     question = body['inputText']
     if input_validation(question):
         print(question)
-        cl_llm = Bedrock(model_id='amazon.titan-tg1-large', client=bedrock_client) # change model_id here
-
+        cl_llm = Bedrock(model_id='amazon.titan-embed-text-v1', client=bedrock_client) # change model_id here
+ 
         memory_chain.chat_memory.add_user_message(question)
-
+ 
         qa = ConversationalRetrievalChain.from_llm(
             llm=cl_llm,
             retriever=vector_database.kendra_retriever,
@@ -670,16 +693,16 @@ def predict_titan_kendra():
         )
         qa.combine_docs_chain.llm_chain.prompt = PromptTemplate.from_template("""
         {context}
-
+ 
         Human: %s
         <q>{question}</q>
-
+ 
         Assistant:""" % (
             vector_database.prompt_template
         ))
-
+ 
         trychat = chathistory1
-        chat_history = trychat 
+        chat_history = trychat
         print("chat_history:",chat_history)
         
         trychat.append((question, ''))
@@ -687,14 +710,15 @@ def predict_titan_kendra():
         prediction = qa.run(question=question)
         print("prediction:",prediction)
         memory_chain.chat_memory.add_ai_message(prediction)
-
+ 
         resres = {
             'output_text': prediction
         }
         return resres
-
+ 
 ### stable diffusion
 @app.route('/api/call-stablediffusion', methods=['POST','PUT'])
+@cross_origin()
 def call_stable_diffusion():
     payload = request.json
     print('stab')
@@ -705,16 +729,17 @@ def call_stable_diffusion():
     print(payload['body'])
     print(json.loads(payload['body'])['text_prompts'][0]['text'])
     if input_validation(json.loads(payload['body'])['text_prompts'][0]['text']):
-        response = bedrock_client.invoke_model(
-            body=payload['body'], 
-            modelId=modelId, 
+        response =bedrock_client.invoke_model(
+            body=payload['body'],
+            modelId=modelId,
             accept=accept,
             contentType=contentType
         )
         response_body = json.loads(response.get('body').read())
         return response_body
-
+ 
 @app.route('/api/crawl', methods=['POST','PUT'])
+@cross_origin()
 def crawl_save_pdf():
     OUTPUT_DATA_DIR = './output'
     MAX_WORKERS = 3
@@ -739,11 +764,11 @@ def crawl_save_pdf():
         else:
             url=link + "/"
             good_links.append(url)
-
+ 
     # Create the "crawledData" folder in the current directory if it doesn't exist
     if not os.path.exists("output"):
         os.makedirs("output")
-
+ 
     ## helper function for crawling
     def crawl(url, max_depth=3, current_depth=1, current_pg_cnt=0, element_id='', prefix=''):
         if url in crawled or current_depth > max_depth:
@@ -755,11 +780,11 @@ def crawl_save_pdf():
             chrome_options.headless = True
             # chrome_options.add_argument('--disable-gpu')
             # chrome_options.add_argument("--no-sandbox")
-
+ 
             driver = webdriver.Chrome(options=chrome_options)
             driver.implicitly_wait(PAGE_LOAD_TIMEOUT)
             driver.get(url)
-
+ 
             # If an element_id was specified as a cmd line argument, wait for it to appear in the DOM before proceeding
             # else, just look for the <BODY> HTML tag
             try:
@@ -767,13 +792,13 @@ def crawl_save_pdf():
                     element_present = EC.presence_of_element_located((By.TAG_NAME, 'body'))
                 else:
                     element_present = EC.presence_of_element_located((By.ID, element_id))
-
+ 
                 # Source: https://stackoverflow.com/questions/26566799/wait-until-page-is-loaded-with-selenium-webdriver-for-python
                 WebDriverWait(driver, PAGE_LOAD_TIMEOUT).until(element_present)
             except TimeoutException:
                 print(f"Timed out waiting for page to load - {url}")
                 return
-
+ 
             current_pg_cnt += 1
             page_source = driver.page_source
             page_title = get_title_from_page(page_source)
@@ -782,16 +807,16 @@ def crawl_save_pdf():
             page_timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S.%f')[:-3] # millisecond precision
             page_filename = str(current_pg_cnt) + "-" + page_title.strip().replace(" ", "_") + '.' + page_timestamp + '.pdf'
             page_filepath = os.path.join(OUTPUT_DATA_DIR, page_filename)
-
+ 
             save_as_pdf(driver, page_filepath, { 'landscape': False, 'displayHeaderFooter': True })
-
+ 
             if current_depth < max_depth:
                 links = collect_links_from_page(url, page_source, prefix)
                 ## remove any links before continuing according to patterns seen for failed links
                 # Use multithreading to crawl sublinks in parallel
                 # filter urls so that it's not crawling a url that's already been crawled
                 filtered_links = [url for url in links if url not in crawled]
-
+ 
                 with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
                     future_to_url = {executor.submit(crawl, link, max_depth, current_depth + 1, current_pg_cnt, element_id, prefix): link for link in filtered_links}
                     for future in concurrent.futures.as_completed(future_to_url):
@@ -802,20 +827,21 @@ def crawl_save_pdf():
         except Exception as e:
             print(f'Error crawling {url} - {e}')
             return
-
+ 
     for link in good_links:
         crawl(link)
-
+ 
     # Print the total number of data sources crawled
     print(f"Total data sources: {len(crawled)}")
-
+ 
     response = {
         'response_text': 'Successfully crawled and saved %s data sources. Reinitializing vector database (this may take some time)...' % ( str(len(crawled)) )
     }
     return response
-
-
+ 
+ 
 @app.route('/api/build-vector', methods=['POST','PUT'])
+@cross_origin()
 def crawl_build_vector():
     payload = request.json
     print(payload)
@@ -824,8 +850,9 @@ def crawl_build_vector():
         'response_text': 'Vector Database initialized successfully.'
     }
     return response
-
+ 
 @app.route('/api/call-rekognition-api', methods=['POST','PUT'])
+@cross_origin()
 def call_rekognition_api():
     # Get the image file from the request
     image_file = request.files['imageUpload']
@@ -843,9 +870,10 @@ def call_rekognition_api():
     labels = [label['Name'] for label in response['Labels']]
     # Return the labels as the API response
     return {'labels': labels}   
-
-
+ 
+ 
 @app.route('/api/upload-pdfs', methods=['POST','PUT'])
+@cross_origin()
 def upload_pdfs():
     if 'pdfFiles' not in request.files:
         return jsonify({'error': 'No PDF files uploaded'}), 400
@@ -873,8 +901,9 @@ def upload_pdfs():
     else:
         return jsonify({'error': 'No valid PDF files uploaded'}), 400
     
-
+ 
 @app.route('/api/download-s3', methods=['POST','PUT'])
+@cross_origin()
 def download_s3():
     payload = request.json
     profile_name = payload['profile_name']
@@ -882,9 +911,10 @@ def download_s3():
     saved_files = vector_database.download_files_s3(profile_name, location)
     print(saved_files)
     return jsonify({'response_text': f'{saved_files} PDF files downloaded and saved. Reinitializing in-memory vector database (this may take some time)...'}), 200
-
-
+ 
+ 
 @app.route('/api/instantiate-kendra', methods=['POST','PUT'])
+@cross_origin()
 def instantiate_kendra():
     payload = request.json
     profile_name = payload['profile_name']
@@ -892,11 +922,11 @@ def instantiate_kendra():
     response = vector_database.instantiate_kendra(profile_name, index_id)
     print('kendra connection was: '+str(response))
     return jsonify({'response_text': f'Amazon Kendra Index successfully connected.'}), 200
-
+ 
 def contains_table(text):
     # Check if the text contains a table by looking for table delimiter lines
     return '|-' in text
-
+ 
 def text_to_html_table(input_text):
     if contains_table(input_text):
         lines = input_text.strip().split('\n')
@@ -951,27 +981,27 @@ def text_to_html_table(input_text):
 def create_bar_graph_html(input_text):
     # Find the starting index of the table
     start_index = input_text.find("|Issue|")
-
+ 
     # Extract the table part of the input text
     table_text = input_text[start_index:]
-
+ 
     # Split the table rows
     rows = table_text.strip().split('\n')
-
+ 
     # Parse the table rows to extract data
     headers = [header.strip() for header in rows[1].split('|') if header.strip()]
     data = []
     for row in rows[3:]:
         columns = [column.strip() for column in row.split('|') if column.strip()]
         data.append(columns)
-
+ 
     # Generate the bar graph HTML
     bar_graph_html = ''
     for item in data:
         issue = item[0]
         count = int(item[-1])
         bar_width = count * 20  # Adjust this factor to control bar width
-
+ 
         bar_graph_html += f'''
         <div class="bar-graph">
             <div class="bar-label">{count}</div>
@@ -979,30 +1009,32 @@ def create_bar_graph_html(input_text):
             <div class="issue-label">{issue}</div>
         </div>
         '''
-
+ 
     return bar_graph_html
-
-
+ 
+ 
 @app.route('/api/deletefiles', methods=['GET'])
+@cross_origin()
 def delete_files_in_directory():
     try:
         # Get a list of all files in the directory
         directory_path = pdf_directory
         files = os.listdir(directory_path)
-
+ 
         # Loop through the files and delete each one
         for file_name in files:
             file_path = os.path.join(directory_path, file_name)
             if os.path.isfile(file_path):
                 os.remove(file_path)
-
+ 
         print("All files in the PDF output directory have been deleted.")
         vector_database.destroy_vector_db()
         return jsonify({'response_text': "All files in the PDF output directory have been deleted."}), 200
     except Exception as e:
         print(f"Error: {e}")
-
+ 
 @app.route('/api/configure-opensearch', methods=['GET'])
+@cross_origin()
 def configure_opensearch():
     global opensearch_client
     try:
@@ -1016,7 +1048,7 @@ def configure_opensearch():
             verify_certs=True,
             connection_class=RequestsHttpConnection
         )
-
+ 
         opensearch_info = {
             "status": "success",
             "message": "OpenSearch configured successfully",
@@ -1028,8 +1060,9 @@ def configure_opensearch():
         return jsonify(opensearch_info), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
+ 
 @app.route('/api/insert-documents', methods=['POST'])
+@cross_origin()
 def insert_documents():
     global opensearch_client
     try:
@@ -1040,11 +1073,11 @@ def insert_documents():
         response = requests.get(user_input["data_url"]).json()
         print("response", response)
         os_documents = []
-
+ 
         for r in response["rows"]:
             os_documents.append({"index": {"_index": "vectorindex"}})
             os_documents.append(r["row"])
-
+ 
         bulk_response = opensearch_client.bulk(body=os_documents)
         print("bulkresponse", bulk_response)
         print(bulk_response)
@@ -1054,13 +1087,14 @@ def insert_documents():
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route('/api/opensearch-search-documents', methods=['POST'])
+@cross_origin()
 def search_documents():
     global opensearch_client
     try:
         user_input = request.json  # Assuming JSON input
-
+ 
         vector_range = user_input["vector_range"]  # Extract vector range from user input
-
+ 
         search_query = {
             "size": user_input.get("limit", 2),
             "_source": ["title", "id", "url"],
@@ -1073,7 +1107,7 @@ def search_documents():
                 }
             }
         }
-
+ 
         search_response = opensearch_client.search(index='vectorindex', body=search_query)
         
         return jsonify({"status": "success", "message": "Search results", "response": search_response}), 200
@@ -1082,17 +1116,22 @@ def search_documents():
         return jsonify({"status": "error", "message": str(e)}), 500
    
 @app.route('/api/check-vector', methods=['GET'])
+@cross_origin()
 def check_vector():
     return jsonify({'vector_initialized': str(vector_database.vector_initialized)}), 200
-
+ 
 @app.route('/api/update-prompt-template', methods=['POST','PUT'])
+@cross_origin()
 def update_prompt_template():
     user_input = request.json  # Assuming JSON input
-
+ 
     prompt_template = user_input["prompt_template"]  # Extract vector range from user input
     vector_database.update_prompt_template(prompt_template)
     return jsonify({'response_text': 'Prompt Template was updated.'}), 200
-
+ 
 if __name__ == '__main__':
-    app.run()
-
+    app.run(host='0.0.0.0', port=5000)
+ 
+ 
+ 
+ 
