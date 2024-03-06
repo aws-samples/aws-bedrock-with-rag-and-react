@@ -120,7 +120,7 @@ const Anthropic = (props) => {
         props.setAnthropicMessages(prevChatMessages => [...prevChatMessages, messageElement]);
 
         let payload = {
-            modelId: 'anthropic.claude-instant-v1',
+            modelId: 'anthropic.claude-v2',
             contentType: 'application/json',
             accept: '*/*',
             body: JSON.stringify({
