@@ -255,6 +255,13 @@ p.VectorSelection2 {
     border-radius: 3px;
     padding-left:5px;
     padding: 7px 7px;
+    display: grid;
+}
+
+.MessageText b {
+    padding: 20px auto;
+    color:#1983e2;
+    font-weight:600;
 }
 
 .chat-messages-crawl .MessageText {
@@ -2227,7 +2234,11 @@ button.amplify-menu-content__item.active {
 }
 
 
-
+.site-title{
+    padding-left: 150px;
+}
 
   
+
+
 

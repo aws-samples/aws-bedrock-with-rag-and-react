@@ -1,0 +1,16 @@
+.logo-container {
+    text-align: center;
+  }
+  
+  .logo-image {
+
+    position: absolute !important;
+    height: 60px !important;
+    top: -4px !important;
+    top: 1px;
+    width: 130px;
+    /* height: auto !important; */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+  }
+  

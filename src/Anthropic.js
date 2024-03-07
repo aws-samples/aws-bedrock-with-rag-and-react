@@ -42,7 +42,7 @@ const Anthropic = (props) => {
         // Code to run after component has mounted
         if (props.anthropicMessages.length === 0) {
             setChatMessages([
-                { author: `${props.modelSelected.split(':')[1]} Bot`, message: `Welcome to the ${props.modelSelected} Chatbot!` }
+                { author: `${props.modelSelected.split(':')[1]} Bot`, message: `<p>How may I assist you today?</p>` }
             ])
         } else {
             setChatMessages(props.anthropicMessages)
@@ -201,10 +201,10 @@ const Anthropic = (props) => {
 
     const clearChatHistory = () => {
         setChatMessages([
-            { author: `${selectedModel.split(':')[1]} Bot`, message: `Welcome to the ${selectedModel} Chatbot!` }
+            { author: `${selectedModel.split(':')[1]} Bot`, message:  `<p>How may I assist you today?</p>` }
         ])
         props.setAnthropicMessages([
-            { author: `${selectedModel.split(':')[1]} Bot`, message: `Welcome to the ${selectedModel} Chatbot!` }
+            { author: `${selectedModel.split(':')[1]} Bot`, message:  `<p>How may I assist you today?</p>` }
         ])
     }
 
@@ -541,12 +541,12 @@ const Anthropic = (props) => {
                             <p className="VectorSelection">Please select an option for vector database:</p>
                             <div className="VectorSelection">
                                 <div className="VectorInnerSelection">
-                                    <Button onClick={() => setVectorSelection('local')}>Local In-Memory Vector DB (FAISS)</Button>
-                                    <Button className={currentVector === "faiss" ? "VectorUseButton Active" : "VectorUseButton"} onClick={() => handleSetVector('faiss')}>Use FAISS</Button>
+                                    <Button onClick={() => setVectorSelection('local')}>Upload Documents for Summarization And Q/A</Button>
+                                    <Button className={currentVector === "faiss" ? "VectorUseButton Active" : "VectorUseButton"} onClick={() => handleSetVector('faiss')}>Multimedia Files</Button>
                                 </div>
                                 <div className="VectorInnerSelection">
-                                    <Button onClick={() => setVectorSelection('kendra')}>Amazon Kendra Index</Button>
-                                    <Button className={currentVector === "kendra" ? "VectorUseButton Active" : "VectorUseButton"} disabled={!kendraInstantiated} onClick={() => handleSetVector('kendra')}>Use Kendra</Button>
+                                    <Button onClick={() => setVectorSelection('kendra')}>TE Public Repository</Button>
+                                    <Button className={currentVector === "kendra" ? "VectorUseButton Active" : "VectorUseButton"} disabled={!kendraInstantiated} onClick={() => handleSetVector('kendra')}>27 Documents</Button>
                                 </div>
                             </div>
                         </span>
@@ -779,11 +779,6 @@ const Anthropic = (props) => {
                     <path d="M16 0c-8.837 0-16 2.239-16 5v4c0 2.761 7.163 5 16 5s16-2.239 16-5v-4c0-2.761-7.163-5-16-5z"></path>
                     <path d="M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
                     <path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
-                </svg>
-            </Button>
-            <Button type="Button" className="PromptEditButton" onClick={() => setPromptModal(!promptModal)}>
-                <svg viewBox="0 0 24 28">
-                    <path d="M22.937 5.938c0.578 0.578 1.062 1.734 1.062 2.562v18c0 0.828-0.672 1.5-1.5 1.5h-21c-0.828 0-1.5-0.672-1.5-1.5v-25c0-0.828 0.672-1.5 1.5-1.5h14c0.828 0 1.984 0.484 2.562 1.062zM16 2.125v5.875h5.875c-0.094-0.266-0.234-0.531-0.344-0.641l-4.891-4.891c-0.109-0.109-0.375-0.25-0.641-0.344zM22 26v-16h-6.5c-0.828 0-1.5-0.672-1.5-1.5v-6.5h-12v24h20zM7.5 12c0.172-0.219 0.484-0.266 0.703-0.094l0.797 0.594c0.219 0.172 0.266 0.484 0.094 0.703l-2.844 3.797 2.844 3.797c0.172 0.219 0.125 0.531-0.094 0.703l-0.797 0.594c-0.219 0.172-0.531 0.125-0.703-0.094l-3.531-4.703c-0.125-0.172-0.125-0.422 0-0.594zM20.031 16.703c0.125 0.172 0.125 0.422 0 0.594l-3.531 4.703c-0.172 0.219-0.484 0.266-0.703 0.094l-0.797-0.594c-0.219-0.172-0.266-0.484-0.094-0.703l2.844-3.797-2.844-3.797c-0.172-0.219-0.125-0.531 0.094-0.703l0.797-0.594c0.219-0.172 0.531-0.125 0.703 0.094zM10.344 23.906c-0.281-0.047-0.453-0.313-0.406-0.578l2.156-12.984c0.047-0.281 0.313-0.453 0.578-0.406l0.984 0.156c0.281 0.047 0.453 0.313 0.406 0.578l-2.156 12.984c-0.047 0.281-0.313 0.453-0.578 0.406z"></path>
                 </svg>
             </Button>
             <Button type="Button" className="IssueIndicator" onClick={() => setCrawlModal(!crawlModal)}
