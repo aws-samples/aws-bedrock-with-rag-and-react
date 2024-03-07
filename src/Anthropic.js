@@ -120,7 +120,7 @@ const Anthropic = (props) => {
         props.setAnthropicMessages(prevChatMessages => [...prevChatMessages, messageElement]);
 
         let payload = {
-            modelId: 'anthropic.claude-v2',
+            modelId: 'anthropic.claude-3-sonnet-20240229-v1:0',
             contentType: 'application/json',
             accept: '*/*',
             body: JSON.stringify({
@@ -781,6 +781,7 @@ const Anthropic = (props) => {
                     <path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
                 </svg>
             </Button>
+            
             <Button type="Button" className="IssueIndicator" onClick={() => setCrawlModal(!crawlModal)}
                 style={{
                     display: currentVector === "faiss" ? (vectorInitialized === "false" ? 'flex' : 'none') : 'none'
