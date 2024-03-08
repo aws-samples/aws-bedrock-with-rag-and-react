@@ -10,6 +10,8 @@ import AI21 from './AI21'
 import StableDiffusion from './StableDiffusion';
 import { Button, Menu, MenuItem, MenuButton } from '@aws-amplify/ui-react';
 import LogoComponent from './components/LogoComponent.js';
+import LoginForm from './components/LoginForm.js';
+
 const modelOptions = [
     'Anthropic: Claude',
     'Amazon: Titan',
@@ -27,6 +29,13 @@ const App = ({ signOut }) => {
     const [kendraInstantiated, setKendraInstantiated] = useState(false)
     const [currentVector, setCurrentVector] = useState('faiss')
     const [promptTemplate, setPromptTemplate] = useState("Use the context to answer the question at the end. If you don't know the answer from the context, do not answer from your knowledge and be precise. Don't fake the answer.")
+
+ const [userValidated, setUserValidated] = useState(false);
+
+ const handleUserValidation = (isValidated) => {
+        setUserValidated(isValidated);
+   };
+
 
     const middleSetVector = (input) => {
         console.log('input: '+ input)
@@ -74,21 +83,26 @@ const App = ({ signOut }) => {
 
 
     return (
+       
         <div className="App">
             <div className="airwolf-header2">
-            
               <LogoComponent /> 
-            
                <span className ="site-title">TEL.me (Beta)</span>    
-                    
                 {/* <Button className="signOut" onClick={signOut}>Sign out</Button> */}
             </div>
 
-            <div id="ContentSection">
-                { getModelComponent() }
+        <div>
+            {userValidated ? (
+                    <div id="ContentSection">
+                        { getModelComponent() }
+                    </div>
+            ) : (
+                <LoginForm onUserValidation={handleUserValidation}  />
+            )}
             </div>
-           
+
         </div>
+       
     );
 }
 

@@ -2239,6 +2239,8 @@ button.amplify-menu-content__item.active {
 }
 
   
-
+.VectorInnerSelection.noclick button{
+  cursor: auto;
+}
 
 

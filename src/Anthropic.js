@@ -124,7 +124,7 @@ const Anthropic = (props) => {
             contentType: 'application/json',
             accept: '*/*',
             body: JSON.stringify({
-                prompt: userInput,
+                prompt: userInput.replace(/[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~"'’]/g),
                 max_tokens_to_sample: 300,
                 temperature: 0.5,
                 top_k: 250,
@@ -544,8 +544,8 @@ const Anthropic = (props) => {
                                     <Button onClick={() => setVectorSelection('local')}>Upload Documents for Summarization And Q/A</Button>
                                     <Button className={currentVector === "faiss" ? "VectorUseButton Active" : "VectorUseButton"} onClick={() => handleSetVector('faiss')}>Multimedia Files</Button>
                                 </div>
-                                <div className="VectorInnerSelection">
-                                    <Button onClick={() => setVectorSelection('kendra')}>TE Public Repository</Button>
+                                <div className="VectorInnerSelection noclick">
+                                    <Button>TE Public Repository</Button>
                                     <Button className={currentVector === "kendra" ? "VectorUseButton Active" : "VectorUseButton"} disabled={!kendraInstantiated} onClick={() => handleSetVector('kendra')}>27 Documents</Button>
                                 </div>
                             </div>
