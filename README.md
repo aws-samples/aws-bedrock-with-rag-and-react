@@ -68,6 +68,42 @@ Please note : When creating this IAM role, follow the best practice of granting 
 1. In one terminal session, cd into `./backend/flask` and execute `flask run`
 2. In another terminal session, make sure your terminal cursor is anywhere inside of this repository's directory and execute `npm start`. The app will run in development mode and made available at http://localhost:3000/
 
+## Run the Application in Container or Public Address Follow below steps
+
+Step 1:
+
+Create an Amazon ECR repository to store your images.
+
+For example, using the AWS CLI:
+
+Bash
+
+aws ecr create-repository \
+    --repository-name MY_ECR_REPOSITORY \
+    --region MY_AWS_REGION
+
+
+Ensure that you use the same Amazon ECR repository name (represented here by MY_ECR_REPOSITORY) for the ECR_REPOSITORY variable in the workflow below.
+Ensure that you use the same AWS region value for the AWS_REGION (represented here by MY_AWS_REGION) variable in the workflow below.
+
+Step 2:
+
+Create an Amazon ECS task definition, cluster, and service.
+
+For details, follow the Getting started wizard on the Amazon ECS console, or the Getting started guide in the Amazon ECS documentation.
+
+Ensure that you note the names you set for the Amazon ECS service and cluster, and use them for the ECS_SERVICE and ECS_CLUSTER variables in the workflow below.
+
+Step 3:
+
+Once your registry and ECS tasks are created goto the ECS. Select the recently created cluster and navigate to the “Tasks” tab and select an existing task there. Click on the task and it should open task’s configuration. Copy Public IP Address from that task configuration. Goto the “proxy.js” file and paste the copied public IP address as “proxy_url” variable value. 
+
+Step 4:
+Now goto ECR repositories and choose the repository created above. Once you open the repository you should see ECS task’s image there. Choose the latest image and click “View Push Commands” on top right corner. 
+
+In the opened model dialog select each step one by one and run them in the Cloud 9 instances terminal. 
+
+Once all the above command runs proceed to “How to Run” section above. 
 
 ## How to Use
 
