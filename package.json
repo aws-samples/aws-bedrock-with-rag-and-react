@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@aws-amplify/ui-react": "^4.3.7",
+    "@aws-amplify/ui-react": "^4.6.4",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "aws-amplify": "^5.0.14",
+    "aws-amplify": "^6.4.3",
     "aws-sdk": "^2.1414.0",
     "axios": "^1.6.0",
     "buffer": "^6.0.3",
