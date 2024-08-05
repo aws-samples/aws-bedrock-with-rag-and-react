@@ -1,28 +1,63 @@
-#!/usr/bin/env python3
 import os
+import boto3
 
-import aws_cdk as cdk
+from botocore.exceptions import ClientError
+from aws_cdk import App, Environment
+from aws_cdk import aws_ec2 as ec2
 
-from infra.infra_stack import InfraStack
+from lib.backend import BackendStack
+from lib.frontend import FrontendStack
+
+# Get path of current script's parent directory
+current_dir = os.path.dirname(__file__)
+# Parent Directory
+parent_dir = os.path.dirname(current_dir)
+# Source Directory
+src_dir = os.path.join(parent_dir, "src")
+# Frontend Directory
+frontend_dir = os.path.join(src_dir, "frontend")
+# Backend Directory
+backend_dir = os.path.join(src_dir, "backend")
 
 
-app = cdk.App()
-InfraStack(app, "InfraStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
+def get_backend_url(stack_name):
+    cfn_client = boto3.client('cloudformation')
+    try:
+        response = cfn_client.describe_stacks(StackName=stack_name)
+        outputs = response['Stacks'][0]['Outputs']
+        for output in outputs:
+            if output['OutputKey'] == 'BackendURL':
+                return output['OutputValue']
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ValidationError':
+            print(f"Error: Stack '{stack_name}' does not exist.")
+            print("Please deploy the backend stack first using 'cdk deploy BackendStack'")
+        else:
+            print(f"An error occurred: {e}")
+        return None
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
 
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+app = App()
+env = Environment(account=os.environ.get("CDK_DEFAULT_ACCOUNT", None),
+                  region=os.environ.get("CDK_DEFAULT_REGION", "us-east-1"))
 
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
+# Deploy backend stack
+backend = BackendStack(app, "BedrockDemo-BackendStack",
+                       backend_dir=backend_dir,
+                       env=env
+                       )
 
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
+backend_url = get_backend_url("BedrockDemo-BackendStack")
+if not backend_url:
+    print("Backend URL not found. Please deploy the backend stack first.")
+    print("Using placeholder for synthesis and current deployment")
+    backend_url = "http://localhost:5000"
 
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    )
+# Deploy frontend stack
+frontend = FrontendStack(app, "BedrockDemo-FrontendStack",
+                         frontend_path=frontend_dir,
+                         proxy_url=backend_url,
+                         env=env
+                         )
 
 app.synth()

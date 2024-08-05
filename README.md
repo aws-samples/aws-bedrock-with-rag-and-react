@@ -13,7 +13,7 @@ The only cost-generating AWS service this solution uses is Amazon Bedrock.
 
 ## Screenshots
 
-![Bedrock Demo Frontend](bedrock_demo_mov.gif)
+![Bedrock Demo FrontEnd](bedrock_demo_mov.gif)
 
 
 ## Prerequisites
