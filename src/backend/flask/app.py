@@ -9,10 +9,10 @@ import boto3
 from langchain.chains import ConversationalRetrievalChain
 from langchain.schema import BaseMessage
 from langchain.memory import ConversationBufferMemory
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.llms.bedrock import Bedrock
-from langchain.embeddings import BedrockEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.embeddings import BedrockEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.schema import BaseMessage
 from langchain.llms.bedrock import Bedrock
@@ -37,7 +37,7 @@ import base64
 from urllib.parse import urljoin
 from urllib.parse import urlparse
 from flask_cors import CORS
-from langchain.retrievers import AmazonKendraRetriever
+from langchain_community.retrievers import AmazonKendraRetriever
 from opensearchpy import OpenSearch
 from opensearchpy.connection import RequestsHttpConnection
 from threading import Lock
@@ -51,9 +51,8 @@ aws_service = 'bedrock'
 chathistory = []
 
 aws_cli_profile_name = ''
-session = boto3.Session(profile_name=aws_cli_profile_name)
-# session = boto3.Session()
-bedrock_client = session.client(service_name='bedrock', region_name=aws_region, endpoint_url='https://bedrock-runtime.'+aws_region+'.amazonaws.com')
+session = boto3.Session()
+bedrock_client = session.client(service_name='bedrock-runtime', region_name=aws_region)
 pdf_directory = './output'
 
 app.config['UPLOAD_FOLDER'] = 'output'

@@ -30,3 +30,4 @@ selenium==4.11.2
 flask-cors==4.0.1
 opensearch-py==2.3.0
 boto3
+langchain-community
