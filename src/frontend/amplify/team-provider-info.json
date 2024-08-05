@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-bedrock-dev-a306d-authRole",
+      "UnauthRoleArn": "arn:aws:iam::834212829299:role/amplify-bedrock-dev-a306d-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::834212829299:role/amplify-bedrock-dev-a306d-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-bedrock-dev-a306d-deployment",
+      "UnauthRoleName": "amplify-bedrock-dev-a306d-unauthRole",
+      "StackName": "amplify-bedrock-dev-a306d",
+      "StackId": "arn:aws:cloudformation:us-east-1:834212829299:stack/amplify-bedrock-dev-a306d/6a1ecf20-5339-11ef-845c-0affc02222ef",
+      "AmplifyAppId": "d6l0el1gluxx0"
+    }
+  }
+}
