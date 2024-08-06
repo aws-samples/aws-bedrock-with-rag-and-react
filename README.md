@@ -15,8 +15,6 @@ The only cost-generating AWS service this solution uses is Amazon Bedrock.
 
 ![Bedrock Demo FrontEnd](bedrock_demo_mov.gif)
 
-Here's the revised markdown without using ``` code blocks:
-
 ## Prerequisites
 
 1. [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html)
