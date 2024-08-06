@@ -1,3 +1,6 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 from aws_cdk import (
     Stack,
     aws_ecr_assets as ecr_assets,
