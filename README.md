@@ -43,8 +43,6 @@ This solution contains a backend Flask application which uses LangChain to provi
     cdk deploy BedrockDemo-BackendStack
     ```
 
-    > Replace example.com with your actual domain name in your Route 53.
-
 4. Redeploy the frontend stack to update the proxy URL:
 
     ```
