@@ -1,6 +1,7 @@
 node_modules
 .DS_Store
 
+cdk.context.json
 *.swp
 package-lock.json
 __pycache__
