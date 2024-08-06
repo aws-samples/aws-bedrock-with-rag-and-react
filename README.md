@@ -34,13 +34,17 @@ The only cost-generating AWS service this solution uses is Amazon Bedrock.
 
 3. Deploy the Backend CDK stack:
 
-   cdk deploy BedrockDemo-BackendStack -c parent_domain=example.com
+  ``` 
+  cdk deploy BedrockDemo-BackendStack -c parent_domain=example.com
+  ```
 
 > Replace example.com with your actual domain name in your Route 53.
 
 4. Redeploy the frontend stack to update the proxy URL:
 
-   cdk deploy BedrockDemo-FrontendStack -c parent_domain=example.com
+  ```
+  cdk deploy BedrockDemo-FrontendStack -c parent_domain=example.com
+  ```
 
 Your application should now be accessible at the frontend URL provided by the CDK output.
 
