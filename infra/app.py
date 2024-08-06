@@ -33,8 +33,7 @@ def get_backend_url(stack_name):
                 return output['OutputValue']
     except ClientError as e:
         if e.response['Error']['Code'] == 'ValidationError':
-            print(f"Error: Stack '{stack_name}' does not exist.")
-            print("Please deploy the backend stack first using 'cdk deploy BackendStack'")
+            print("Backend stack not found. Running synthesis with assumed defaults..")
         else:
             print(f"An error occurred: {e}")
         return None
@@ -52,8 +51,6 @@ backend = BackendStack(app, "BedrockDemo-BackendStack",
 
 backend_url = get_backend_url("BedrockDemo-BackendStack")
 if not backend_url:
-    print("Backend URL not found. Please deploy the backend stack first.")
-    print("Using placeholder for synthesis and current deployment")
     backend_url = "http://localhost:5000"
 
 # Deploy frontend stack

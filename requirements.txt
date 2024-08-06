@@ -1,3 +1,4 @@
 aws-cdk-lib==2.147.2
+aws_cdk.aws_apprunner_alpha
 constructs>=10.0.0,<11.0.0
 boto3

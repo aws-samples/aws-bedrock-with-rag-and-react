@@ -25,23 +25,31 @@ This solution contains a backend Flask application which uses LangChain to provi
 
 2. Install the Python dependencies for the CDK Deployment:
 
-  ```
-  pip install -r requirements.txt
-  ```
+    ```
+    pip install -r requirements.txt
+    ```
 
-3. Deploy the Backend CDK stack:
+3. Bootstrap CDK (if not already done):
+   If this is your first time using CDK in this AWS account and region, you need to bootstrap CDK. This command deploys a CDK toolkit stack to your account that helps with asset management:
+   ```
+   cdk bootstrap aws://YOUR_ACCOUNT_NUMBER/YOUR_REGION
+   ```
+   Replace `YOUR_ACCOUNT_NUMBER` with your AWS account number and `YOUR_REGION` with your desired AWS region.
 
-  ``` 
-  cdk deploy BedrockDemo-BackendStack -c parent_domain=example.com
-  ```
 
-> Replace example.com with your actual domain name in your Route 53.
+4. Deploy the Backend CDK stack. 
+
+    ``` 
+    cdk deploy BedrockDemo-BackendStack
+    ```
+
+    > Replace example.com with your actual domain name in your Route 53.
 
 4. Redeploy the frontend stack to update the proxy URL:
 
-  ```
-  cdk deploy BedrockDemo-FrontendStack -c parent_domain=example.com
-  ```
+    ```
+    cdk deploy BedrockDemo-FrontendStack
+    ```
 
 Your application should now be accessible at the frontend URL provided by the CDK output.
 

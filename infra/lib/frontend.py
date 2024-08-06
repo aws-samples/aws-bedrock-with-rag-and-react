@@ -8,9 +8,6 @@ from aws_cdk import (
     aws_cloudfront as cloudfront,
     aws_cloudfront_origins as origins,
     aws_iam as iam,
-    aws_route53 as route53,
-    aws_route53_targets as targets,
-    aws_certificatemanager as acm,
     CfnOutput,
     RemovalPolicy,
     BundlingOptions,
@@ -22,26 +19,6 @@ class FrontendStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, 
                  frontend_path: str, proxy_url: str, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
-
-        # Get the parent domain from CDK context
-        parent_domain = self.node.try_get_context("parent_domain")
-        if not parent_domain:
-            raise ValueError("parent_domain must be provided in CDK context")
-
-        # Construct the full domain name (you can adjust this as needed)
-        domain_name = f"app.{parent_domain}"
-
-        # Look up the hosted zone
-        hosted_zone = route53.HostedZone.from_lookup(
-            self, "Zone", domain_name=parent_domain
-        )
-
-        # Create an SSL certificate
-        certificate = acm.Certificate(
-            self, "Certificate",
-            domain_name=domain_name,
-            validation=acm.CertificateValidation.from_dns(hosted_zone)
-        )
 
         # Create a private S3 bucket to host the React app
         hosting_bucket = s3.Bucket(
@@ -56,7 +33,7 @@ class FrontendStack(Stack):
         # Update proxy.js with the provided proxy_url or a placeholder
         proxy_file_content = f"""
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT.
+// SPDX-License-Identifier: MIT-0
 
 const proxy_url = "{proxy_url}";
 
@@ -101,7 +78,7 @@ export default proxy_url;
             )]
         ))
 
-        # Create a CloudFront distribution with custom domain
+        # Create a CloudFront distribution
         self.distribution = cloudfront.Distribution(
             self, "ReactAppDistribution",
             default_behavior=cloudfront.BehaviorOptions(
@@ -111,8 +88,6 @@ export default proxy_url;
                 ),
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             ),
-            domain_names=[domain_name],
-            certificate=certificate,
             default_root_object="index.html",
             error_responses=[
                 cloudfront.ErrorResponse(
@@ -123,19 +98,9 @@ export default proxy_url;
             ],
         )
 
-        # Create Route 53 alias record for the CloudFront distribution
-        route53.ARecord(
-            self, "FrontendAliasRecord",
-            zone=hosted_zone,
-            target=route53.RecordTarget.from_alias(
-                targets.CloudFrontTarget(self.distribution)
-            ),
-            record_name=domain_name
-        )
-
-        # Output the custom domain URL
+        # Output the CloudFront distribution URL
         CfnOutput(
             self, "FrontendURL",
-            value=f"https://{domain_name}",
+            value=f"https://{self.distribution.distribution_domain_name}",
             description="Frontend Application URL",
         )
