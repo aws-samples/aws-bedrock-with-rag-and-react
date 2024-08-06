@@ -31,7 +31,7 @@ Here's the revised markdown without using ``` code blocks:
 2. Install the Python dependencies for the CDK Deployment:
 
   ```
-  pip install -r infra/requirements.txt
+  pip install -r requirements.txt
   ```
 
 3. Deploy the Backend CDK stack:
