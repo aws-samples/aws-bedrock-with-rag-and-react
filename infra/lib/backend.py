@@ -29,7 +29,9 @@ class BackendStack(Stack):
                 image_configuration=apprunner_alpha.ImageConfiguration(
                     port=5000  # Assuming your backend still listens on port 5000
                 )
-            )
+            ),
+            cpu=apprunner_alpha.Cpu.FOUR_VCPU,
+            memory=apprunner_alpha.Memory.TWELVE_GB
         )
 
         app_runner_service.add_to_role_policy(
