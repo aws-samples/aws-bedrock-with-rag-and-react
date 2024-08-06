@@ -15,95 +15,36 @@ The only cost-generating AWS service this solution uses is Amazon Bedrock.
 
 ![Bedrock Demo FrontEnd](bedrock_demo_mov.gif)
 
+Here's the revised markdown without using ``` code blocks:
 
 ## Prerequisites
 
-You'll need to install all prerequisites on your local operating machine.
+1. [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html)
+2. [Node.js & npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+3. [Python 3.8 or higher](https://www.python.org/downloads/macos/)
+4. AWS CLI configured with appropriate permissions
 
-    
-For the Flask backend, you'll need to have:
-1. [Python 3.8 or higher](https://www.python.org/downloads/macos/)
-2. Set up the SDK for Python (Boto3) and AWS CLI
-    - Boto3 & Botocore: `pip3 install ./backend/flask/boto3-1.26.162-py3-none-any.whl ./backend/flask/botocore-1.29.162-py3-none-any.whl`
-    - AWS CLI: [Instructions Here](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-3. Install the requirements using the requirements file with `pip3 install -r ./backend/flask/requirements.txt`
+## How to Deploy
 
+1. Clone the repository and navigate to the project directory.
 
-For the React frontend, you'll need to install the following:
-1. [Node.js & npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-2. Install the NPM dependencies with `npm install`
+2. Install the Python dependencies for the CDK Deployment:
 
+  ```
+  pip install -r infra/requirements.txt
+  ```
 
+3. Deploy the Backend CDK stack:
 
-## IAM Permission
+   cdk deploy *Backend* -c parent_domain=example.com
 
-Your flask backend will need permissions to call the Bedrock API. More specifically, it should have least privileged access to Invoke foundational models in Bedrock. To do this, you'll need to create an IAM user with the appropriate permissions, then generate access keys (cli credentials). Complete documentation of Bedrock IAM Reference configurations [found here.](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonbedrock.html)
+> Replace example.com with your actual domain name in your Route 53.
 
-1. From the IAM console, perform the following steps:
-2. Select the IAM Group associated with your user.
-3. Click on "Add Permissions" and choose "Create Inline Policies" from the dropdown list.
-4. Create a new inline policy and include the following permissions:
-```
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "bedrock:InvokeModel",
-      "Resource": "*"
-    }
-  ]
-}
-```
-Please note : When creating this IAM role, follow the best practice of granting [least privileged access.](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege)
+4. Redeploy the frontend stack to update the proxy URL:
 
-6. Create programmatic access keys/CLI credentials.
-7. Run `aws configure --profile <name_of_profile>'
-7. On line 62 of `backend/flask/app.py`, include the name of your AWS CLI Profile you configured.
-   
+   cdk deploy *Frontend* -c parent_domain=example.com
 
-
-## How to Run
-
-1. In one terminal session, cd into `./backend/flask` and execute `flask run`
-2. In another terminal session, make sure your terminal cursor is anywhere inside of this repository's directory and execute `npm start`. The app will run in development mode and made available at http://localhost:3000/
-
-## Run the Application in Container or Public Address Follow below steps
-
-Step 1:
-
-Create an Amazon ECR repository to store your images.
-
-For example, using the AWS CLI:
-
-Bash
-
-aws ecr create-repository \
-    --repository-name MY_ECR_REPOSITORY \
-    --region MY_AWS_REGION
-
-
-Ensure that you use the same Amazon ECR repository name (represented here by MY_ECR_REPOSITORY) for the ECR_REPOSITORY variable in the workflow below.
-Ensure that you use the same AWS region value for the AWS_REGION (represented here by MY_AWS_REGION) variable in the workflow below.
-
-Step 2:
-
-Create an Amazon ECS task definition, cluster, and service.
-
-For details, follow the Getting started wizard on the Amazon ECS console, or the Getting started guide in the Amazon ECS documentation.
-
-Ensure that you note the names you set for the Amazon ECS service and cluster, and use them for the ECS_SERVICE and ECS_CLUSTER variables in the workflow below.
-
-Step 3:
-
-Once your registry and ECS tasks are created goto the ECS. Select the recently created cluster and navigate to the “Tasks” tab and select an existing task there. Click on the task and it should open task’s configuration. Copy Public IP Address from that task configuration. Goto the “proxy.js” file and paste the copied public IP address as “proxy_url” variable value. 
-
-Step 4:
-Now goto ECR repositories and choose the repository created above. Once you open the repository you should see ECS task’s image there. Choose the latest image and click “View Push Commands” on top right corner. 
-
-In the opened model dialog select each step one by one and run them in the Cloud 9 instances terminal. 
-
-Once all the above command runs proceed to “How to Run” section above. 
+Your application should now be accessible at the frontend URL provided by the CDK output.
 
 ## How to Use
 
