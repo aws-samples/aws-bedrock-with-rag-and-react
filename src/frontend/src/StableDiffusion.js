@@ -29,7 +29,7 @@ const StableDiffusion = (props) => {
         event.preventDefault();
         setIsBuffering(true);
         const payload = {
-          "modelId": "stability.stable-diffusion-xl",
+          "modelId": "stability.stable-diffusion-xl-v1",
           "contentType": "application/json",
           "accept": "application/json",
           "body": JSON.stringify({
