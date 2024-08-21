@@ -697,7 +697,7 @@ def predict_titan_kendra():
 def call_stable_diffusion():
     payload = request.json
     print('stab')
-    modelId = 'stability.stable-diffusion-xl'
+    modelId = 'stability.stable-diffusion-xl-v1'
     accept = 'application/json'
     contentType = 'application/json'
     print(request)
