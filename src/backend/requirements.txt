@@ -27,7 +27,7 @@ tika==2.6.0
 bs4==0.0.1
 fpdf==1.7.2
 selenium==4.11.2
-flask-cors==4.0.1
+flask-cors==5.0.0
 opensearch-py==2.3.0
 boto3
 langchain-community
