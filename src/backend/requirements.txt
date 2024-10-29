@@ -17,7 +17,7 @@ s3transfer==0.6.1
 six==1.16.0
 sqlparse==0.5.0
 urllib3==1.26.19
-Werkzeug==3.0.3
+Werkzeug==3.0.6
 faiss-cpu==1.7.4
 pypdf==3.17.0
 pypdf2==3.0.1
