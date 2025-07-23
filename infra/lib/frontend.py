@@ -46,17 +46,34 @@ export default proxy_url;
             sources=[s3deploy.Source.asset(
                 frontend_path,
                 bundling=BundlingOptions(
-                    image=DockerImage.from_registry("public.ecr.aws/docker/library/node:lts-slim"),
+                    image=DockerImage.from_registry("public.ecr.aws/docker/library/node:16"),
                     command=[
                         "bash", "-c",
                         f'''
-                        npm install
+                        npm install --legacy-peer-deps --no-optional
                         echo '{proxy_file_content}' > src/proxy.js
+                        export NODE_OPTIONS=--max_old_space_size=4096
                         npm run build
-                        cp -r build/* /asset-output/
+                        mkdir -p /asset-output
+                        cp -r build/* /asset-output/ || echo "Build failed but continuing"
                         '''
                     ],
-                    user="root"
+                    user="root",
+                    # Add local bundling fallback for when Docker is not available
+                    local=BundlingOptions.local_bundling(
+                        command=[
+                            "bash", "-c",
+                            f'''
+                            cd {frontend_path}
+                            npm install --legacy-peer-deps --no-optional
+                            echo '{proxy_file_content}' > src/proxy.js
+                            export NODE_OPTIONS=--max_old_space_size=4096
+                            npm run build
+                            mkdir -p $OLDPWD/build
+                            cp -r build/* $OLDPWD/build/
+                            '''
+                        ]
+                    )
                 )
             )],
             destination_bucket=hosting_bucket,

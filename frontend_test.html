@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Question-Answering Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .question-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .response {
+            white-space: pre-wrap;
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #4CAF50;
+        }
+        .status {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        .file-list {
+            margin-top: 10px;
+        }
+        .file-item {
+            background-color: #e9e9e9;
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #4CAF50;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>PDF Question-Answering Test</h1>
+    
+    <div class="container">
+        <div class="section">
+            <h2>1. Check Backend Status</h2>
+            <button id="checkStatus">Check Backend Status</button>
+            <div id="statusResult" class="status"></div>
+        </div>
+        
+        <div class="section">
+            <h2>2. Upload PDF Files</h2>
+            <div class="file-upload">
+                <input type="file" id="pdfFiles" accept=".pdf" multiple>
+                <button id="uploadButton">Upload PDFs</button>
+                <div id="uploadStatus" class="status"></div>
+                <div id="fileList" class="file-list"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>3. Initialize Vector Database</h2>
+            <button id="initializeButton">Initialize Vector Database</button>
+            <div id="initializeStatus" class="status"></div>
+        </div>
+        
+        <div class="section">
+            <h2>4. Ask Questions</h2>
+            <div class="question-section">
+                <textarea id="questionInput" placeholder="Type your question here..."></textarea>
+                <button id="askButton">Ask Question</button>
+                <div id="questionStatus" class="status"></div>
+                <div id="response" class="response"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'http://localhost:8000';
+        
+        // DOM Elements
+        const checkStatusBtn = document.getElementById('checkStatus');
+        const statusResult = document.getElementById('statusResult');
+        const pdfFilesInput = document.getElementById('pdfFiles');
+        const uploadButton = document.getElementById('uploadButton');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const fileList = document.getElementById('fileList');
+        const initializeButton = document.getElementById('initializeButton');
+        const initializeStatus = document.getElementById('initializeStatus');
+        const questionInput = document.getElementById('questionInput');
+        const askButton = document.getElementById('askButton');
+        const questionStatus = document.getElementById('questionStatus');
+        const responseElement = document.getElementById('response');
+        
+        // Event Listeners
+        checkStatusBtn.addEventListener('click', checkBackendStatus);
+        uploadButton.addEventListener('click', uploadPDFs);
+        initializeButton.addEventListener('click', initializeVectorDB);
+        askButton.addEventListener('click', askQuestion);
+        
+        // Functions
+        async function checkBackendStatus() {
+            statusResult.innerHTML = 'Checking backend status... <div class="loading"></div>';
+            statusResult.className = 'status';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/check-vector`);
+                const data = await response.json();
+                
+                statusResult.innerHTML = `
+                    <div class="success">Backend is running!</div>
+                    <div>Vector initialized: ${data.vector_initialized}</div>
+                    <div>Documents available: ${data.has_documents}</div>
+                    <div>Document count: ${data.document_count}</div>
+                `;
+                
+                // Update file list if documents are available
+                if (data.document_count > 0) {
+                    updateFileList();
+                }
+            } catch (error) {
+                statusResult.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                console.error('Error checking backend status:', error);
+            }
+        }
+        
+        async function updateFileList() {
+            try {
+                // This is a simplified version - in a real app, you'd get the file list from the backend
+                const response = await fetch(`${API_URL}/api/check-vector`);
+                const data = await response.json();
+                
+                if (data.document_count > 0) {
+                    fileList.innerHTML = `<div>${data.document_count} PDF file(s) available on the server</div>`;
+                } else {
+                    fileList.innerHTML = 'No PDF files available';
+                }
+            } catch (error) {
+                console.error('Error updating file list:', error);
+            }
+        }
+        
+        async function uploadPDFs() {
+            const files = pdfFilesInput.files;
+            
+            if (files.length === 0) {
+                uploadStatus.innerHTML = '<div class="error">Please select at least one PDF file</div>';
+                return;
+            }
+            
+            uploadStatus.innerHTML = `Uploading ${files.length} file(s)... <div class="loading"></div>`;
+            uploadStatus.className = 'status';
+            
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/upload-pdf`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    uploadStatus.innerHTML = `<div class="success">${data.message}</div>`;
+                    
+                    // Display uploaded files
+                    let fileListHTML = '<div>Uploaded files:</div>';
+                    data.files.forEach(file => {
+                        fileListHTML += `<div class="file-item">${file}</div>`;
+                    });
+                    fileList.innerHTML = fileListHTML;
+                } else {
+                    uploadStatus.innerHTML = `<div class="error">${data.message}</div>`;
+                }
+            } catch (error) {
+                uploadStatus.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                console.error('Error uploading PDFs:', error);
+            }
+        }
+        
+        async function initializeVectorDB() {
+            initializeStatus.innerHTML = 'Initializing vector database... <div class="loading"></div>';
+            initializeStatus.className = 'status';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/force-initialize-vector`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    initializeStatus.innerHTML = `<div class="success">${data.message}</div>`;
+                } else {
+                    initializeStatus.innerHTML = `<div class="error">${data.message}</div>`;
+                }
+            } catch (error) {
+                initializeStatus.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                console.error('Error initializing vector database:', error);
+            }
+        }
+        
+        async function askQuestion() {
+            const question = questionInput.value.trim();
+            
+            if (!question) {
+                questionStatus.innerHTML = '<div class="error">Please enter a question</div>';
+                return;
+            }
+            
+            questionStatus.innerHTML = 'Processing question... <div class="loading"></div>';
+            questionStatus.className = 'status';
+            responseElement.textContent = '';
+            
+            try {
+                const payload = {
+                    body: JSON.stringify({
+                        prompt: question
+                    })
+                };
+                
+                const response = await fetch(`${API_URL}/api/conversation/predict-claude`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                questionStatus.innerHTML = '<div class="success">Question answered successfully</div>';
+                responseElement.textContent = data;
+            } catch (error) {
+                questionStatus.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                console.error('Error asking question:', error);
+            }
+        }
+        
+        // Check backend status on page load
+        window.addEventListener('load', checkBackendStatus);
+    </script>
+</body>
+</html>

@@ -3,22 +3,25 @@
 
 import './App.css';
 import '@aws-amplify/ui-react/styles.css';
+import './custom-amplify.css';
 import React, { useState } from 'react';
 import Anthropic from './Anthropic';
 import Amazon from './Amazon';
 import AI21 from './AI21'
 import StableDiffusion from './StableDiffusion';
+import AgentCapabilities from './AgentCapabilities';
 import { Button, Menu, MenuItem, MenuButton } from '@aws-amplify/ui-react';
 
 const modelOptions = [
-    'Anthropic: Claude',
+    'Anthropic: Claude Sonnet 4.0',
     'Amazon: Titan',
     'AI21: Jurassic2',
-    'Stability AI: Stable Diffusion'
+    'Stability AI: Stable Diffusion',
+    'Agent Capabilities'
 ]
 
 const App = ({ signOut }) => {
-    const [modelSelected, setModelSelected] = useState('Anthropic: Claude');
+    const [modelSelected, setModelSelected] = useState('Anthropic: Claude Sonnet 4.0');
     const [anthropicMessages, setAnthropicMessages] = useState([]);
     const [amazonMessages, setAmazonMessages] = useState([]);
     const [ai21Messages, setAi21Messages] = useState([]);
@@ -34,7 +37,7 @@ const App = ({ signOut }) => {
 
     const getModelComponent = () => {
         switch(modelSelected){
-            case 'Anthropic: Claude':
+            case 'Anthropic: Claude Sonnet 4.0':
                 return (
                     <Anthropic modelSelected={modelSelected} 
                     anthropicMessages={anthropicMessages} 
@@ -65,6 +68,10 @@ const App = ({ signOut }) => {
                 return (
                     <StableDiffusion modelSelected={modelSelected} />
                 );
+            case 'Agent Capabilities':
+                return (
+                    <AgentCapabilities modelSelected={modelSelected} />
+                );
             default:
                 break;
       }
@@ -91,23 +98,25 @@ const App = ({ signOut }) => {
                     </svg>
                 <div className="OtherModels">
                     <p>Model Selection: </p>
-                    <Menu menuAlign="start" className="NavMenu"
-                    trigger={
-                        <MenuButton id="menuButtonMain" width="40%">
-                          {modelSelected}
-                        </MenuButton>
-                      }>
-                    {modelOptions.map((option) => (
-                        <MenuItem
-                            key={option}
-                            className={`model-option ${modelSelected === option ? 'active' : ''}`}
-                            onClick={() => setModelSelected(option)}
-                        >
-                            {option}
-                        </MenuItem>
-                        
-                    ))}
-                    </Menu>
+                    <select 
+                        value={modelSelected}
+                        onChange={(e) => setModelSelected(e.target.value)}
+                        style={{
+                            padding: '8px 12px',
+                            borderRadius: '4px',
+                            border: '1px solid #ccc',
+                            backgroundColor: '#fff',
+                            color: '#333',
+                            fontSize: '14px',
+                            width: '220px'
+                        }}
+                    >
+                        {modelOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 {/* <Button className="signOut" onClick={signOut}>Sign out</Button> */}
             </div>
@@ -130,8 +139,12 @@ const App = ({ signOut }) => {
                         <p>Amazon is a leader in applying ML to e-commerce, cloud computing, online advertising, and digital streaming services. The Amazon Titan models leverage Amazon’s 20+ years of ML experience.</p>
                     </div>
                     <div className="llm-section">
-                        <h2>Claude By Anthropic</h2>
-                        <p>Anthropic is an AI safety and research company offering the Claude family of large language models. These models are purpose-built for AI-based assistance use-cases such as obtaining customer service or comprehending documents.</p>
+                        <h2>Claude Sonnet 4.0 By Anthropic</h2>
+                        <p>Anthropic is an AI safety and research company offering the Claude family of large language models. Claude Sonnet 4.0 is their latest and most advanced model, with enhanced reasoning capabilities, improved context handling, and better performance across a wide range of tasks.</p>
+                    </div>
+                    <div className="llm-section">
+                        <h2>Agent Capabilities</h2>
+                        <p>The Agent Capabilities feature allows Claude to perform actions in the real world, such as searching the web, opening a browser, and reading web pages. This enables more interactive and helpful assistance beyond just text-based conversations.</p>
                     </div>
                     <div className="llm-section">
                         <h2>Stable Diffusion By Stability AI</h2>

@@ -1,0 +1,475 @@
+/* Simple reset */
+* {
+  box-sizing: border-box;
+}
+
+/* Basic layout */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Header styles */
+.airwolf-header2 {
+  background-color: #232f3e;
+  color: white;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  height: 60px;
+}
+
+.bedrockDemo {
+  width: 30px;
+  height: 30px;
+  fill: white;
+}
+
+.OtherModels {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.OtherModels p {
+  margin-right: 10px;
+  white-space: nowrap;
+}
+
+/* Content section */
+#ContentSection {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Chat container */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 15px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+  background-color: white;
+}
+
+/* Message styles */
+.You-message,
+.Bot-message,
+.Agent-message {
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.You-message {
+  background-color: #f0f0f0;
+}
+
+.Bot-message,
+.Agent-message {
+  background-color: #e6f7ff;
+}
+
+/* User input area */
+.user-input {
+  display: flex;
+  margin-top: 10px;
+}
+
+.user-input textarea {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: none;
+  height: 60px;
+}
+
+/* Button styles */
+button,
+.amplify-button,
+.ClearHistory,
+.PromptButton {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 12px;
+  background-color: #ff9900;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  margin-left: 10px;
+}
+
+button:hover,
+.amplify-button:hover {
+  background-color: #e68a00;
+}
+
+button:disabled,
+.amplify-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Loading animation */
+.dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background-color: #ff9900;
+  border-radius: 50%;
+  margin: 0 5px;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 1s;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Info modal */
+.InfoModal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  background-color: #232f3e;
+  color: white;
+  height: 100vh;
+  width: 40px;
+  transition: width 0.3s ease-in-out;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.InfoModalButton {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+}
+
+.InfoModalButton svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+.InnerInfoModal {
+  padding: 20px;
+  width: 900px;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Crawl modal */
+.CrawlModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto !important;
+  overflow: auto;
+  cursor: default;
+  isolation: isolate;
+  touch-action: auto;
+}
+
+.CrawlPrompt {
+  position: relative;
+  background-color: white;
+  padding: 20px;
+  border-radius: 4px;
+  width: 80%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 2001;
+  pointer-events: auto;
+}
+
+.CrawlModalButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ModalButton,
+.ModalButtonBack {
+  cursor: pointer;
+  z-index: 2002;
+}
+
+.closeModal {
+  width: 24px;
+  height: 24px;
+  fill: #232f3e;
+}
+
+/* Vector selection */
+.VectorSelection {
+  margin-bottom: 15px;
+}
+
+.VectorInnerSelection {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.VectorUseButton {
+  margin-left: 10px;
+}
+
+.Active {
+  background-color: #232f3e;
+}
+
+/* File upload */
+.file-input-container {
+  margin: 15px 0;
+  position: relative;
+  z-index: 2003;
+  width: 100%;
+  display: block;
+}
+
+.file-input-label {
+  cursor: pointer;
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  position: relative;
+  z-index: 2004;
+}
+
+.choose-file-Button {
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: #ff9900;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  z-index: 2004;
+}
+
+.choose-file-Button:hover {
+  background-color: #e68a00;
+}
+
+/* Prompt modal */
+.PromptModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Utility buttons */
+.CrawlReindex,
+.PromptEditButton,
+.IssueIndicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 1500;
+  background-color: #ff9900;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.PromptEditButton {
+  right: 80px;
+  background-color: #232f3e;
+}
+
+.IssueIndicator {
+  right: 140px;
+  background-color: #d13212;
+}
+
+.CrawlReindex svg,
+.PromptEditButton svg,
+.IssueIndicator svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+/* Chat messages crawl */
+.chat-messages-crawl {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 15px;
+  background-color: white;
+}
+
+/* User input crawl */
+.user-input-crawl,
+.user-input-crawl-s3 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.user-input-crawl textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: none;
+  height: 60px;
+}
+
+/* Amplify components */
+.amplify-textfield__input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.amplify-textfield__label {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.amplify-heading {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.amplify-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.amplify-card {
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+}
+
+/* Agent capabilities */
+.agent-actions {
+  background-color: #f8f8f8;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.action-params {
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  background-color: white;
+  border: 1px solid #ccc;
+}
+
+.execute-button {
+  width: 100%;
+  margin-top: 15px;
+}
+
+/* Fix for file upload */
+input[type="file"] {
+  display: block !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 2005;
+  margin: 10px 0;
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #ccc;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+/* Fix for bubble */
+.bubble {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 300px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: none;
+}
+
+.IssueIndicator:hover .bubble {
+  display: block;
+}
+
+.bubble.right {
+  right: 60px;
+  bottom: 0;
+}
+
+/* Fix for HundoContainer */
+.HundoContainer {
+  width: 100%;
+}
