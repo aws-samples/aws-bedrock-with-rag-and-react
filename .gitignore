@@ -13,6 +13,12 @@ __pycache__
 .cdk.staging
 cdk.out
 
+# IDE settings
+.vscode/
+
+# Output and temporary files
+output/
+
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend
 amplify/.config/local-*
