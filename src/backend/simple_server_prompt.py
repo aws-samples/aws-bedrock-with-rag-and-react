@@ -192,67 +192,68 @@ USER QUESTION:
 
 RESPONSE INSTRUCTIONS:
 
-1. QUESTION ANALYSIS:
-   - Identify the question type (definition, list, summary, comparison, translation, etc.)
-   - Determine key entities and concepts mentioned
-   - Assess the scope and depth required
+You must structure your response with proper formatting and organization. Follow these guidelines:
 
-2. DOCUMENT ANALYSIS:
-   - Cross-reference information across all provided documents
-   - Identify and resolve any contradictions or inconsistencies
-   - Note the most relevant and authoritative sources
-   - Extract specific data points requested in the question (names, dates, numbers, etc.)
+1. RESPONSE STRUCTURE:
+   - Start with a brief contextual summary (1-2 sentences) if appropriate
+   - Present the main content in a well-organized format
+   - End with document references at the bottom
 
-3. RESPONSE FORMATTING:
+2. FORMATTING BY QUESTION TYPE:
 
-For definitions ("what is"):
-   - Start with a clear, concise definition (1-2 sentences)
-   - Follow with key details and context
-   - Highlight important points
+For definitions ("what is", "define"):
+   - Provide a clear, concise definition (1-2 sentences)
+   - Follow with key characteristics or components
+   - Include relevant context or background
+   - Use bullet points for multiple aspects or features
 
-For lists ("list", "who are", "what are", "name all", etc.):
-   - ALWAYS use bullet points (•) for each item
-   - Format as a clean, structured list with one item per line
-   - Include names, titles, and other relevant details for each item
-   - Group items by category if there are more than 5 items
-   - For people lists, include their roles/titles if available
-   - For "sponsors" or similar roles, clearly identify all individuals mentioned
+For lists ("list", "who are", "what are", "name all", "identify"):
+   - Start with a brief summary of what you're listing
+   - Use clean bullet points (•) for each item
+   - Include relevant details (names, roles, titles, contact info) for each item
+   - Group by categories if there are many items
+   - Ensure completeness - extract ALL relevant items from documents
 
-For summaries:
-   - Provide a concise overview (2-3 sentences)
-   - Include key points and significant details
-   - Maintain logical flow and coherence
+For summaries ("summarize", "overview", "explain"):
+   - Provide a comprehensive overview in 2-3 paragraphs
+   - Organize by main topics or themes
+   - Include key points, dates, numbers, and outcomes
+   - Use bullet points for key highlights if there are many points
+   - Maintain logical flow from general to specific
 
-For comparisons:
-   - Use clear structure (tables/columns if appropriate)
+For comparisons ("compare", "difference", "versus"):
+   - Start with a brief overview of what's being compared
+   - Use clear sections or bullet points for each item being compared
    - Highlight key differences and similarities
-   - Present balanced information from all sources
+   - Present balanced information
 
-For processes ("how to"):
-   - Present step-by-step instructions with numbered steps
-   - Include any important prerequisites
-   - Note any warnings or special considerations
+For processes ("how to", "steps", "procedure"):
+   - Provide numbered steps (1., 2., 3., etc.)
+   - Include prerequisites if any
+   - Note important warnings or considerations
 
-4. QUALITY GUIDELINES:
-   - Be extremely concise and direct
-   - Use clear, professional language
-   - Highlight key information where relevant
-   - Include specific details from documents when necessary
-   - State clearly if information is insufficient
-   - NEVER include phrases like "Based on the documents" or "According to the information provided"
-   - Adapt tone and complexity to match the question
-   - Present information in a logical, organized manner
-   - NEVER return raw document text - always process and format the information
-   - For list questions, ensure ALL relevant items are extracted from the documents
+3. QUALITY STANDARDS:
+   - Be concise but comprehensive
+   - Use professional, clear language
+   - Never include meta-references like "Based on the documents"
+   - Process and synthesize information - never return raw document text
+   - Ensure logical organization and flow
+   - Include specific details, names, dates, and numbers when relevant
 
-5. SPECIAL INSTRUCTIONS FOR LIST QUESTIONS:
-   - If the question asks to "list" anything, your response MUST be in bullet point format
-   - Extract ALL relevant items from the documents, even if they appear in different sections
-   - Format each item consistently
-   - Include only the information requested - be precise and focused
-   - For questions about people (sponsors, team members, etc.), list each person with their role/email if available
+4. DOCUMENT REFERENCES:
+   - ALWAYS end your response with a "References:" section
+   - List the source documents used
+   - Format as: "References: [Document Name 1], [Document Name 2]"
+   - Keep this section separate from the main content
 
-Now, please provide your response to the question above, following these guidelines and formatting instructions.
+5. SPECIAL FORMATTING RULES:
+   - Use bullet points (•) for lists and key points
+   - Use numbered lists (1., 2., 3.) for processes or steps
+   - Use clear paragraph breaks for readability
+   - Bold or emphasize important terms when appropriate
+   - Ensure consistent formatting throughout
+
+Now, provide a well-structured response following these guidelines. Remember to end with document references.
 """
     
     return prompt
