@@ -14,7 +14,8 @@ This solution contains a backend Flask application which uses LangChain to provi
 
 ## Prerequisites
 
-1. [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html)
+1. [Docker](https://www.docker.com/) or compatible software such as [Colima](https://github.com/abiosoft/colima?tab=readme-ov-file#features)
+1. [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) including bootstrap and setting `CDK_DEFAULT_ACCOUNT`
 2. [Node.js & npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 3. [Python 3.8 or higher](https://www.python.org/downloads/macos/)
 4. AWS CLI configured with appropriate permissions
